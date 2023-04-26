@@ -64,12 +64,12 @@ class Prompt:
         overhead = len(self.stages['vaccination'].split()) - len(self.prompt.split()) if self.stages["vaccination"] != "Cancelled" else -1
         report = {
             'prompt': self.prompt,
+            'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75),
             'overhead': overhead,
             'gating': self.stages['gating'],
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
             'vaccination': self.stages['vaccination'],
-            'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75),
             'report': {
                 'risk_level': 'low',
                 'reasons': [
