@@ -31,6 +31,9 @@ class Prompt:
         self.overhead = kwargs.get("overhead", None)
         self.triage = kwargs
 
+    def __getitem__(self, item):
+        return self.triage[item]
+
     def __str__(self):
         return self.prompt
 
