@@ -61,7 +61,7 @@ class Prompt:
         self.generate_triage_report()
 
     def generate_triage_report(self):
-        overhead = len(self.stages['vaccination'].split()) - len(self.prompt.split()) if self.stages["vaccination"] != "Cancelled" else -1
+        overhead = len(self.stages['vaccination'].split()) - len(self.prompt.split()) if self.stages["vaccination"] != "Cancelled" else 0
         report = {
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75),
