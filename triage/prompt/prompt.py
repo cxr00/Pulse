@@ -20,7 +20,8 @@ class Prompt:
             d = ast.literal_eval(f.read())
         return Prompt(**d)
 
-    def __init__(self, prompt, **kwargs):
+    def __init__(self, u_id, prompt, **kwargs):
+        self.u_id = str(u_id)
         self.prompt = prompt
         self.stages = {
             'gating': kwargs.get("gating", None),
@@ -66,6 +67,7 @@ class Prompt:
     def generate_triage_report(self):
         overhead = len(self.stages['vaccination'].split()) - len(self.prompt.split()) if self.stages["vaccination"] != "Cancelled" else 0
         report = {
+            'u_id': self.u_id,
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75),
             'overhead': overhead,
