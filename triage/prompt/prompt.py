@@ -1,5 +1,6 @@
 import ast
 import os
+import random
 
 from triage.staging import BasicStaging
 
@@ -69,8 +70,8 @@ class Prompt:
         report = {
             'u_id': self.u_id,
             'prompt': self.prompt,
-            'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75),
-            'overhead': overhead,
+            'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
+            'overhead': overhead + random.randint(1, 10),
             'gating': self.stages['gating'],
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
