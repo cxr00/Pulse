@@ -9,16 +9,36 @@ class Prompt:
 
     @staticmethod
     def load_folder(directory_path, n=15):
+        if not os.path.isdir(directory_path):
+            raise ValueError("Directory path is invalid")
+
         dirlist = os.listdir(directory_path)
         output = []
         for file in sorted(dirlist, key=lambda x: os.path.getmtime(os.path.join(directory_path, x)))[:n]:
-            output.append(Prompt.load(os.path.join(directory_path, file)))
+            if not file.endswith(".txt"):
+                continue
+            filepath = os.path.join(directory_path, file)
+            try:
+                prompt = Prompt.load(filepath)
+                output.append(prompt)
+            except ValueError as exc:
+                print(filepath + " error:", exc)
         return output
 
     @staticmethod
     def load(filepath):
-        with open(filepath, "r") as f:
-            d = ast.literal_eval(f.read())
+        if not os.path.isfile(filepath):
+            raise ValueError("File path is invalid")
+
+        try:
+            with open(filepath, "r") as f:
+                d = ast.literal_eval(f.read())
+        except (SyntaxError, ValueError):
+            raise ValueError("File does not contain valid prompt data")
+
+        if not isinstance(d, dict) or "u_id" not in d or "prompt" not in d:
+            raise ValueError("File does not contain valid prompt data")
+
         return Prompt(**d)
 
     def __init__(self, u_id, prompt, **kwargs):
