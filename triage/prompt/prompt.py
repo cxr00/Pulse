@@ -8,7 +8,7 @@ from triage.staging import BasicStaging
 class Prompt:
 
     @staticmethod
-    def load_folder(directory_path, n=15):
+    def load_folder(directory_path, n=15, staging=None):
         if not os.path.isdir(directory_path):
             raise ValueError("Directory path is invalid")
 
@@ -19,14 +19,14 @@ class Prompt:
                 continue
             filepath = os.path.join(directory_path, file)
             try:
-                prompt = Prompt.load(filepath)
+                prompt = Prompt.load(filepath, staging)
                 output.append(prompt)
             except ValueError as exc:
                 print(filepath + " error:", exc)
         return output
 
     @staticmethod
-    def load(filepath):
+    def load(filepath, staging=None):
         if not os.path.isfile(filepath):
             raise ValueError("File path is invalid")
 
@@ -39,6 +39,8 @@ class Prompt:
         if not isinstance(d, dict) or "u_id" not in d or "prompt" not in d:
             raise ValueError("File does not contain valid prompt data")
 
+        if staging is not None and isinstance(staging, type):
+            d["staging_procedure"] = staging
         return Prompt(**d)
 
     def __init__(self, u_id, prompt, **kwargs):
@@ -51,7 +53,11 @@ class Prompt:
             'vaccination': kwargs.get("vaccination", None)
         }
         self.overhead = kwargs.get("overhead", None)
-        self.triage = kwargs
+        self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
+        self.triage = dict()
+        self.triage["u_id"] = u_id
+        self.triage["prompt"] = prompt
+        self.triage.update(kwargs)
 
     def __getitem__(self, item):
         return self.triage[item]
@@ -62,8 +68,8 @@ class Prompt:
     def __repr__(self):
         return str(self.triage)
 
-    def stage(self, cls=BasicStaging):
-        cls = cls()
+    def stage(self):
+        cls = self.staging_procedure()
         processed_prompt = self.prompt
 
         processed_prompt = cls.gating(processed_prompt)
