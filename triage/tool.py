@@ -144,6 +144,7 @@ class PromptTrackerApp:
 
     def refresh_stats(self):
         option_var = self.dropdown_var.get()
+        plt.close("all")
 
         # Save previously-selected tab
         selection = self.analytics_tab.index("current") if self.analytics_tab else 0
