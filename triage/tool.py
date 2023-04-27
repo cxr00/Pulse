@@ -7,14 +7,12 @@ import tkinter as tk
 from tkinter import simpledialog, ttk
 
 from triage.prompt import Prompt
-from triage.staging import BasicStaging
 
 
 class PromptTrackerApp:
-    def __init__(self, prompts, stages=BasicStaging):
+    def __init__(self, prompts):
         self.prompts = prompts
         self.current_prompts = prompts
-        self.stages = stages
 
         self.window = tk.Tk()
         self.window.title("Prompt Triage Tracker")
@@ -72,9 +70,7 @@ class PromptTrackerApp:
         self.current_risk_score_counts = self.risk_score_counts
         self.risk_score_graph_figure = None
         self.refresh_stats()
-
         self.update_prompt_list()
-        self.prompt_listbox.selection_set(0)
 
     def run(self):
         running = True
@@ -92,7 +88,7 @@ class PromptTrackerApp:
         prompt_text = simpledialog.askstring("Enter prompt", "Enter the prompt which you would like to add:", parent=self.window)
         if prompt_text:
             prompt = Prompt(u_id, prompt_text)
-            prompt.stage(self.stages)
+            prompt.stage()
             self.prompts.append(prompt)
             if self.dropdown_var.get() == u_id:
                 self.current_prompts.append(prompt)
@@ -100,11 +96,11 @@ class PromptTrackerApp:
             self.overhead_counts.append(prompt["overhead"])
             self.risk_score_counts.append(prompt["risk_score"])
 
+            self.refresh_stats()
             self.update_prompt_list()
-            self.prompt_listbox.selection_set(len(self.prompts)-1)
+            self.prompt_listbox.selection_set(len(self.current_prompts)-1)
             self.set_prompt(prompt)
             self.set_prompt_info(prompt)
-            self.refresh_stats()
 
     def delete_prompt(self):
         selection = self.prompt_listbox.curselection()
@@ -113,23 +109,18 @@ class PromptTrackerApp:
             self.prompts.pop(index)
             self.overhead_counts.pop(index)
             self.risk_score_counts.pop(index)
-            self.update_prompt_list()
             self.refresh_stats()
+            self.update_prompt_list()
 
     def filter(self, *args):
-        v = self.dropdown_var.get()
-        if v == "all":
-            self.current_prompts = self.prompts
-        else:
-            self.current_prompts = [prompt for prompt in self.prompts if prompt.u_id == v]
-        self.update_prompt_list()
         self.refresh_stats()
+        self.update_prompt_list()
 
     def on_prompt_select(self, event):
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            prompt = self.prompts[index]
+            prompt = self.current_prompts[index]
             self.set_prompt(prompt)
             self.set_prompt_info(prompt)
 
@@ -137,9 +128,19 @@ class PromptTrackerApp:
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
-            prompt = self.prompts[index]
+            d = self.current_prompts[index].triage
+            u_id = "999"
+            if "u_id" in d:
+                del d["u_id"]
+            prompt = Prompt(u_id, **d)
             prompt.stage()
             self.set_prompt_info(prompt)
+            self.prompts.append(prompt)
+            self.overhead_counts.append(prompt["overhead"])
+            self.risk_score_counts.append(prompt["risk_score"])
+            self.refresh_stats()
+            self.update_prompt_list()
+            self.prompt_listbox.selection_set(len(self.current_prompts)-1)
 
     def refresh_stats(self):
         option_var = self.dropdown_var.get()
@@ -149,6 +150,9 @@ class PromptTrackerApp:
 
         # Analytics tabs
         self.analytics_tab = ttk.Notebook(self.window)
+
+        # Refresh current prompts
+        self.current_prompts = [prompt for prompt in self.prompts if prompt.u_id == option_var or option_var == "all"]
 
         # Overhead graph
         self.overhead_frame = ttk.Frame(self.analytics_tab)
@@ -195,9 +199,20 @@ class PromptTrackerApp:
         self.triage_report_text.configure(state="disabled")
 
     def update_prompt_list(self):
+
+        def select_bg_and_fg(risk_score):
+            if risk_score < 3:
+                return {"bg": "Green", "fg": "White"}
+            elif risk_score < 5:
+                return {}
+            elif risk_score < 8:
+                return {"bg": "Dark Orange", "fg": "White"}
+            return {"bg": "Red", "fg": "White"}
+
         self.prompt_listbox.delete(0, tk.END)
-        for prompt in self.current_prompts:
+        for i, prompt in enumerate(self.current_prompts):
             self.prompt_listbox.insert(tk.END, prompt)
+            self.prompt_listbox.itemconfig(i, select_bg_and_fg(self.current_prompts[i]["risk_score"]))
 
 
 if __name__ == '__main__':
