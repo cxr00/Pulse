@@ -4,14 +4,16 @@ import re
 
 class BasicStaging(Staging):
     """
-    Basic staging with annotation verification
+    Basic staging with gating of mild language and annotation verification
     """
 
     def __init__(self):
         super().__init__()
 
     def gating(self, prompt):
-        return prompt
+        if any([curse in prompt.lower() for curse in ["damn", "ass", "hell"]]):
+            return "Blocked: contains curse words"
+        return "Pass"
 
     def annotation_verification(self, prompt, lr, log=False):
         """
