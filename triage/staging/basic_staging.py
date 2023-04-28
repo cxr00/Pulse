@@ -1,3 +1,4 @@
+from triage.staging import _blocklist
 from triage.staging import Staging
 import re
 
@@ -11,8 +12,9 @@ class BasicStaging(Staging):
         super().__init__()
 
     def gating(self, prompt):
-        if any([curse in prompt.lower() for curse in ["damn", "ass", "hell"]]):
-            return "Blocked: contains curse words"
+        prompt = prompt.lower()
+        if any([blocked in prompt for blocked in _blocklist.blocked]):
+            return "Blocked"
         return "Pass"
 
     def annotation_verification(self, prompt, lr, log=False):
@@ -96,7 +98,7 @@ class BasicStaging(Staging):
         return "Pass"
 
     def layering(self, prompt):
-        return prompt
+        return prompt, "Complete"
 
     def vaccination(self, prompt):
-        return prompt
+        return prompt, "Complete"
