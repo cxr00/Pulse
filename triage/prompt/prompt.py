@@ -76,7 +76,7 @@ class Prompt:
         self.stages["gating"] = processed_prompt
 
         for s in ["[]", "{}", "<>"]:
-            test = cls.annotation_verification(processed_prompt, "[]")
+            test = cls.annotation_verification(processed_prompt, s)
             if test.lower().startswith("error"):
                 break
         self.stages["annotation_verification"] = test
