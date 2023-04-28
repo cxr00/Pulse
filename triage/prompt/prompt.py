@@ -5,6 +5,14 @@ import random
 from triage.staging import BasicStaging
 
 
+def failed_gating_prompt():
+    return "Inform the user that the prompt has been rejected due to language."
+
+
+def failed_annotation_verification_prompt(error):
+    return f"Inform the user that the prompt failed annotation verification. \n{error}"
+
+
 class Prompt:
 
     @staticmethod
@@ -54,6 +62,7 @@ class Prompt:
         }
         self.overhead = kwargs.get("overhead", None)
         self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
+        self.final_prompt = kwargs.get("final_prompt", None)
         self.triage = dict()
         self.triage["u_id"] = u_id
         self.triage["prompt"] = prompt
@@ -72,27 +81,35 @@ class Prompt:
         cls = self.staging_procedure()
         processed_prompt = self.prompt
 
-        processed_prompt = cls.gating(processed_prompt)
-        self.stages["gating"] = processed_prompt
-
-        for s in ["[]", "{}", "<>"]:
-            test = cls.annotation_verification(processed_prompt, s)
-            if test.lower().startswith("error"):
-                break
-        self.stages["annotation_verification"] = test
-        if test.lower().startswith("error:"):
+        gating_result = cls.gating(processed_prompt)
+        self.stages["gating"] = gating_result
+        if gating_result.lower().startswith("blocked"):
+            self.stages["annotation_verification"] = "Cancelled"
             self.stages["layering"] = "Cancelled"
             self.stages["vaccination"] = "Cancelled"
+            self.final_prompt = failed_gating_prompt()
+
         else:
-            processed_prompt = cls.layering(processed_prompt)
-            self.stages["layering"] = processed_prompt
-            processed_prompt = cls.vaccination(processed_prompt)
-            self.stages["vaccination"] = processed_prompt
+            for s in ["[]", "{}", "<>"]:
+                test = cls.annotation_verification(processed_prompt, s)
+                if test.lower().startswith("error"):
+                    break
+            self.stages["annotation_verification"] = test
+            if test.lower().startswith("error:"):
+                self.stages["layering"] = "Cancelled"
+                self.stages["vaccination"] = "Cancelled"
+                self.final_prompt = failed_annotation_verification_prompt(self.stages["annotation_verification"])
+            else:
+                processed_prompt, result = cls.layering(processed_prompt)
+                self.stages["layering"] = result
+                processed_prompt, result = cls.vaccination(processed_prompt)
+                self.stages["vaccination"] = result
+                self.final_prompt = processed_prompt
 
         self.generate_triage_report()
 
     def generate_triage_report(self):
-        overhead = len(self.stages['vaccination'].split()) - len(self.prompt.split()) if self.stages["vaccination"] != "Cancelled" else 0
+        overhead = len(self.final_prompt.split()) - len(self.prompt.split())
         report = {
             'u_id': self.u_id,
             'prompt': self.prompt,
@@ -102,14 +119,7 @@ class Prompt:
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
             'vaccination': self.stages['vaccination'],
-            'report': {
-                'risk_level': 'low',
-                'reasons': [
-                    'Prompt originated from trusted source',
-                    'Short and simple prompt',
-                    'No previous history of malicious behavior'
-                ]
-            }
+            'final_prompt': self.final_prompt
         }
         self.triage = report
 
