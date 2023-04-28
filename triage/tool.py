@@ -15,7 +15,7 @@ class PromptTrackerApp:
         self.current_prompts = prompts
 
         self.window = tk.Tk()
-        self.window.title("Prompt Triage Tracker")
+        self.window.title("Pulse by Complexor")
 
         # Listbox containing recent prompts
         self.prompt_listbox = tk.Listbox(self.window, height=20, width=50)
@@ -59,16 +59,22 @@ class PromptTrackerApp:
 
         # Analytics tabs
         self.analytics_tab = None
+
+        self.overview_frame = None
+        self.overview_text = None
+
         self.overhead_frame = None
         self.overhead_graph = None
         self.overhead_counts = [prompt["overhead"] for prompt in self.prompts]
         self.current_overhead_counts = self.overhead_counts
         self.overhead_graph_figure = None
+
         self.risk_score_frame = None
         self.risk_score_graph = None
         self.risk_score_counts = [prompt["risk_score"] for prompt in self.prompts]
         self.current_risk_score_counts = self.risk_score_counts
         self.risk_score_graph_figure = None
+
         self.refresh_stats()
         self.update_prompt_list()
 
@@ -154,26 +160,47 @@ class PromptTrackerApp:
 
         # Refresh current prompts
         self.current_prompts = [prompt for prompt in self.prompts if prompt.u_id == option_var or option_var == "all"]
+        l_p = len(self.current_prompts)
+
+        # Overview
+        self.overview_frame = ttk.Frame(self.analytics_tab)
+
+        text = f"Gated: {l_p}/{l_p}\n\n"
+        text += f"Annotations verified: {sum([1 for prompt in self.current_prompts if prompt['annotation_verification'] == 'Pass'])}/{l_p}\n\n"
+        text += f"Total overhead: {sum([prompt['overhead'] for prompt in self.current_prompts])}\n\n"
+        text += f"Total staged: {sum([1 for prompt in self.current_prompts if prompt['vaccination'] != 'Cancelled'])}"
+
+        self.overview_text = tk.Text(self.overview_frame, height=10, width=35, borderwidth=0, highlightthickness=0)
+        self.overview_text.insert("1.0", text)
+        self.overview_text.config(state="disabled", bg="#f0f0f0")
+        self.overview_text.place(x=0, y=20)
 
         # Overhead graph
         self.overhead_frame = ttk.Frame(self.analytics_tab)
         self.overhead_graph, ax = plt.subplots()
         self.current_overhead_counts = [count for i, count in enumerate(self.overhead_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
+        avg = sum(self.current_overhead_counts) / max(1, len(self.current_overhead_counts))
+        bar_colors = [
+            "green" if coc < avg / 2 else "blue" if coc < avg else "yellow" if coc < avg * 1.5 else "red" for coc in self.current_overhead_counts
+        ]
 
-        ax.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_overhead_counts)
+        ax.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_overhead_counts, color=bar_colors)
         ax.set_ylabel("Overhead")
         ax.set_xlabel("Prompt")
         ax.set_title(f"Overhead of last {len(self.current_prompts)} prompts from {'u_id ' + option_var if option_var != 'all' else 'all users'}")
         self.overhead_graph_figure = FigureCanvasTkAgg(self.overhead_graph, master=self.overhead_frame)
         self.overhead_graph_figure.get_tk_widget().pack(expand=True, fill="both")
-        plt.axhline(y=sum(self.current_overhead_counts) / max(1, len(self.current_overhead_counts)))
+        plt.axhline(y=avg, color="red")
 
         # Risk factor graph
         self.risk_score_frame = ttk.Frame(self.analytics_tab)
         self.risk_score_graph, bx = plt.subplots()
         self.current_risk_score_counts = [count for i, count in enumerate(self.risk_score_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
+        bar_colors = [
+            "green" if crsc < 3 else "yellow" if crsc < 5 else "orange" if crsc < 8 else "red" for crsc in self.current_risk_score_counts
+        ]
 
-        bx.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_risk_score_counts)
+        bx.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_risk_score_counts, color=bar_colors)
         bx.set_ylabel("Risk Score")
         bx.set_xlabel("Prompt")
         bx.set_title(f"Risk score of last {len(self.current_prompts)} prompts from {'u_id ' + option_var if option_var != 'all' else 'all users'}")
@@ -182,6 +209,7 @@ class PromptTrackerApp:
         plt.axhline(y=sum(self.current_risk_score_counts) / max(1, len(self.current_risk_score_counts)))
 
         # Add tabs and grid
+        self.analytics_tab.add(self.overview_frame, text="Overview")
         self.analytics_tab.add(self.overhead_frame, text="Overhead")
         self.analytics_tab.add(self.risk_score_frame, text="Risk Score")
         self.analytics_tab.grid(row=3, column=4, padx=10)
