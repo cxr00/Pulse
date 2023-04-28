@@ -190,7 +190,7 @@ class PromptTrackerApp:
         ax.set_title(f"Overhead of last {len(self.current_prompts)} prompts from {'u_id ' + option_var if option_var != 'all' else 'all users'}")
         self.overhead_graph_figure = FigureCanvasTkAgg(self.overhead_graph, master=self.overhead_frame)
         self.overhead_graph_figure.get_tk_widget().pack(expand=True, fill="both")
-        plt.axhline(y=avg, color="yellow")
+        plt.axhline(y=avg, color="black")
 
         # Risk factor graph
         self.risk_score_frame = ttk.Frame(self.analytics_tab)
