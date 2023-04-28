@@ -181,7 +181,7 @@ class PromptTrackerApp:
         self.current_overhead_counts = [count for i, count in enumerate(self.overhead_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
         avg = sum(self.current_overhead_counts) / max(1, len(self.current_overhead_counts))
         bar_colors = [
-            "green" if coc < avg / 2 else "blue" if coc < avg else "yellow" if coc < avg * 1.5 else "red" for coc in self.current_overhead_counts
+            "green" if coc < avg / 2 else "blue" if coc < avg else "blue" if coc < avg * 1.5 else "red" for coc in self.current_overhead_counts
         ]
 
         ax.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_overhead_counts, color=bar_colors)
