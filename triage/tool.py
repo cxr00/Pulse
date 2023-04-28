@@ -165,7 +165,7 @@ class PromptTrackerApp:
         # Overview
         self.overview_frame = ttk.Frame(self.analytics_tab)
 
-        text = f"Gated: {l_p}/{l_p}\n\n"
+        text = f"Gated: {l_p - sum([1 for prompt in self.current_prompts if not prompt['gating'].lower().startswith('blocked')])}/{l_p}\n\n"
         text += f"Annotations verified: {sum([1 for prompt in self.current_prompts if prompt['annotation_verification'] == 'Pass'])}/{l_p}\n\n"
         text += f"Total overhead: {sum([prompt['overhead'] for prompt in self.current_prompts])}\n\n"
         text += f"Total staged: {sum([1 for prompt in self.current_prompts if prompt['vaccination'] != 'Cancelled'])}"
@@ -181,7 +181,7 @@ class PromptTrackerApp:
         self.current_overhead_counts = [count for i, count in enumerate(self.overhead_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
         avg = sum(self.current_overhead_counts) / max(1, len(self.current_overhead_counts))
         bar_colors = [
-            "green" if coc < avg / 2 else "blue" if coc < avg else "blue" if coc < avg * 1.5 else "red" for coc in self.current_overhead_counts
+            "green" if coc < avg / 2 else "blue" if coc < avg else "yellow" if coc < avg * 1.5 else "red" for coc in self.current_overhead_counts
         ]
 
         ax.bar([i for i in range(1, len(self.current_prompts)+1)], self.current_overhead_counts, color=bar_colors)
@@ -190,7 +190,7 @@ class PromptTrackerApp:
         ax.set_title(f"Overhead of last {len(self.current_prompts)} prompts from {'u_id ' + option_var if option_var != 'all' else 'all users'}")
         self.overhead_graph_figure = FigureCanvasTkAgg(self.overhead_graph, master=self.overhead_frame)
         self.overhead_graph_figure.get_tk_widget().pack(expand=True, fill="both")
-        plt.axhline(y=avg, color="red")
+        plt.axhline(y=avg, color="yellow")
 
         # Risk factor graph
         self.risk_score_frame = ttk.Frame(self.analytics_tab)
