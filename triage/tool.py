@@ -300,6 +300,7 @@ class PromptTrackerApp:
         text_height = 7
         text_width = 45
 
+        self.add_prompt_window and self.add_prompt_window.destroy()
         self.add_prompt_window = tk.Toplevel(self.window)
         self.add_prompt_window.iconbitmap("icon.ico")
 
