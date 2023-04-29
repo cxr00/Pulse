@@ -62,9 +62,10 @@ class Prompt:
             'layering': kwargs.get("layering", None),
             'vaccination': kwargs.get("vaccination", None)
         }
+        self.post_layering = kwargs.get("post_layering", None)
         self.overhead = kwargs.get("overhead", None)
         self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
-        self.final_prompt = kwargs.get("final_prompt", None)
+        self.vaccinated = kwargs.get("vaccinated", None)
         self.triage = dict()
         self.triage["u_id"] = u_id
         self.triage["prompt"] = prompt
@@ -89,7 +90,7 @@ class Prompt:
             self.stages["annotation_verification"] = "Cancelled"
             self.stages["layering"] = "Cancelled"
             self.stages["vaccination"] = "Cancelled"
-            self.final_prompt = failed_gating_prompt()
+            self.vaccinated = failed_gating_prompt()
 
         else:
             for s in ["[]", "{}", "<>"]:
@@ -100,18 +101,19 @@ class Prompt:
             if test.lower().startswith("error:"):
                 self.stages["layering"] = "Cancelled"
                 self.stages["vaccination"] = "Cancelled"
-                self.final_prompt = failed_annotation_verification_prompt(self.stages["annotation_verification"])
+                self.vaccinated = failed_annotation_verification_prompt(self.stages["annotation_verification"])
             else:
                 processed_prompt, result = cls.layering(processed_prompt)
                 self.stages["layering"] = result
+                self.post_layering = processed_prompt
                 processed_prompt, result = cls.vaccination(processed_prompt)
                 self.stages["vaccination"] = result
-                self.final_prompt = processed_prompt
+                self.vaccinated = processed_prompt
 
         self.generate_triage_report()
 
     def generate_triage_report(self):
-        overhead = len(word_tokenize(self.final_prompt)) - len(word_tokenize(self.prompt))
+        overhead = len(word_tokenize(self.vaccinated)) - len(word_tokenize(self.prompt))
         report = {
             'u_id': self.u_id,
             'prompt': self.prompt,
@@ -121,7 +123,7 @@ class Prompt:
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
             'vaccination': self.stages['vaccination'],
-            'final_prompt': self.final_prompt
+            'vaccinated': self.vaccinated
         }
         self.triage = report
 
