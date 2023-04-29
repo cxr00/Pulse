@@ -15,14 +15,19 @@ class PromptTrackerApp:
         self.current_prompts = prompts
 
         self.window = tk.Tk()
+        self.window.config(padx=5, pady=5)
         self.window.title("Pulse by Complexor")
+        self.window.iconbitmap("icon.ico")
+
+        self.popup_window = None
 
         # Listbox containing recent prompts
-        self.prompt_listbox = tk.Listbox(self.window, height=20, width=50)
-        self.prompt_listbox.grid(row=2, column=0, rowspan=17)
+        self.prompt_listbox = tk.Listbox(self.window, height=10, width=50)
+        self.prompt_listbox.grid(row=1, column=0, columnspan=2)
         self.prompt_listbox.bind("<<ListboxSelect>>", self.on_prompt_select)
+        self.prompt_listbox.bind("<Double-Button-1>", self.prompt_popup)
         self.scrollbar = tk.Scrollbar(self.window)
-        self.scrollbar.grid(row=0, column=1, rowspan=10)
+        self.scrollbar.grid(row=1, column=2)
         self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.prompt_listbox.yview)
 
@@ -32,30 +37,53 @@ class PromptTrackerApp:
 
         # Delete prompt button
         self.delete_prompt_button = tk.Button(self.window, text="Delete Prompt", command=self.delete_prompt)
-        self.delete_prompt_button.grid(row=1, column=0)
+        self.delete_prompt_button.grid(row=0, column=1)
 
         # Select u_id dropdown menu
         self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts]))) + ["999"]
         self.dropdown_var = tk.StringVar()
         self.u_id_dropdown_menu = tk.OptionMenu(self.window, self.dropdown_var, *self.u_id_list)
-        self.u_id_dropdown_menu.grid(row=2, column=0)
+        self.u_id_dropdown_menu.grid(row=0, column=2)
         self.dropdown_var.set("all")
         self.dropdown_var.trace("w", self.filter)
 
-        # Refresh button
-        self.refresh_button = tk.Button(self.window, text="Refresh", command=self.refresh_prompt)
-        self.refresh_button.grid(row=9, column=3)
-
         # Triage report section
-        self.triage_report_label = tk.Label(self.window, width=15)
-        self.triage_report_label.config(text="Triage report")
-        self.triage_report_label.grid(row=0, column=3)
+        self.triage_report_frame = tk.Frame(self.window, borderwidth=2, relief="groove")
+        self.triage_report_text_frame = tk.Frame(self.window, borderwidth=2, relief="groove", width=10)
 
-        self.prompt_text = tk.Entry(self.window, width=50, state="disabled")
-        self.prompt_text.grid(row=1, column=3, rowspan=1)
+        self.u_id_label = tk.Label(self.triage_report_frame, text="u_id:", anchor="w")
+        self.u_id_label.grid(row=1, column=0)
+        self.overhead_label = tk.Label(self.triage_report_frame, text="Overhead:", anchor="w")
+        self.overhead_label.grid(row=2, column=0)
+        self.risk_score_label = tk.Label(self.triage_report_frame, text="Risk score:", anchor="w")
+        self.risk_score_label.grid(row=3, column=0)
+        self.gating_label = tk.Label(self.triage_report_frame, text="Gating:", anchor="w")
+        self.gating_label.grid(row=4, column=0)
+        self.annotation_verification_label = tk.Label(self.triage_report_frame, text="Annotation Verification:", anchor="w")
+        self.annotation_verification_label.grid(row=5, column=0)
+        self.layering_label = tk.Label(self.triage_report_frame, text="Layering:", anchor="w")
+        self.layering_label.grid(row=6, column=0)
+        self.vaccination_label = tk.Label(self.triage_report_frame, text="Vaccination:", anchor="w")
+        self.vaccination_label.grid(row=7, column=0)
 
-        self.triage_report_text = tk.Text(self.window, height=20, width=50, state="disabled")
-        self.triage_report_text.grid(row=2, column=3, rowspan=3)
+        self.u_id_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.u_id_text.grid(row=1, column=0, pady=1)
+        self.overhead_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.overhead_text.grid(row=2, column=0, pady=1)
+        self.risk_score_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.risk_score_text.config(bg="#f0f0f0", highlightthickness=0, borderwidth=0)
+        self.risk_score_text.grid(row=3, column=0, pady=1)
+        self.gating_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.gating_text.grid(row=4, column=0, pady=1)
+        self.annotation_verification_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.annotation_verification_text.grid(row=5, column=0, pady=1)
+        self.layering_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.layering_text.grid(row=6, column=0, pady=1)
+        self.vaccination_text = tk.Entry(self.triage_report_text_frame, state="disabled")
+        self.vaccination_text.grid(row=7, column=0, pady=1)
+
+        self.triage_report_frame.grid(row=1, column=3, columnspan=5, sticky="n")
+        self.triage_report_text_frame.grid(row=1, column=8, columnspan=5, sticky="n")
 
         # Analytics tabs
         self.analytics_tab = None
@@ -105,7 +133,6 @@ class PromptTrackerApp:
             self.refresh_stats()
             self.update_prompt_list()
             self.prompt_listbox.selection_set(len(self.current_prompts)-1)
-            self.set_prompt(prompt)
             self.set_prompt_info(prompt)
 
     def delete_prompt(self):
@@ -127,8 +154,47 @@ class PromptTrackerApp:
         if selection:
             index = selection[0]
             prompt = self.current_prompts[index]
-            self.set_prompt(prompt)
             self.set_prompt_info(prompt)
+
+    def prompt_popup(self, event):
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            prompt = self.current_prompts[index]
+            self.popup_window and self.popup_window.destroy()
+            self.popup_window = tk.Toplevel(self.window)
+            self.popup_window.iconbitmap("icon.ico")
+            self.popup_window.title(str(prompt))
+            self.popup_window.config(padx=10, pady=10)
+            tk.Label(self.popup_window, text="Prompt:").grid(row=0, column=0)
+            text = tk.Text(self.popup_window, height=5, width=40)
+            text.insert("1.0", str(prompt))
+            text.grid(row=0, column=1)
+            text.config(state="disabled")
+            if prompt["gating"].lower() == "blocked":
+                tk.Label(self.popup_window, text="Gating error:").grid(row=1, column=0)
+                text = tk.Text(self.popup_window, height=1, width=40)
+                text.insert("1.0", "Gating step blocked prompt")
+                text.grid(row=1, column=1)
+                text.config(state="disabled")
+            if prompt["annotation_verification"].lower().startswith("error"):
+                tk.Label(self.popup_window, text="Annotation verification error:").grid(row=1, column=0)
+                text = tk.Text(self.popup_window, height=2, width=40)
+                text.insert("1.0", prompt["annotation_verification"])
+                text.grid(row=1, column=1)
+                text.config(state="disabled")
+            elif prompt.post_layering:
+                tk.Label(self.popup_window, text="Post-layering:").grid(row=1, column=0)
+                text = tk.Text(self.popup_window, height=5, width=40)
+                text.insert("1.0", prompt.post_layering)
+                text.grid(row=1, column=1)
+                text.config(state="disabled")
+                if prompt.vaccinated:
+                    tk.Label(self.popup_window, text="Vaccinated:").grid(row=2, column=0)
+                    text = tk.Text(self.popup_window, height=5, width=40)
+                    text.insert("1.0", prompt.vaccinated)
+                    text.grid(row=2, column=1)
+                    text.config(state="disabled")
 
     def refresh_prompt(self):
         selection = self.prompt_listbox.curselection()
@@ -212,20 +278,40 @@ class PromptTrackerApp:
         self.analytics_tab.add(self.overview_frame, text="Overview")
         self.analytics_tab.add(self.overhead_frame, text="Overhead")
         self.analytics_tab.add(self.risk_score_frame, text="Risk Score")
-        self.analytics_tab.grid(row=3, column=4, padx=10)
+        self.analytics_tab.grid(row=3, column=0, padx=10, columnspan=10)
         self.analytics_tab.select(selection)
 
-    def set_prompt(self, prompt):
-        self.prompt_text.configure(state="normal")
-        self.prompt_text.delete(0, tk.END)
-        self.prompt_text.insert(tk.END, prompt)
-        self.prompt_text.configure(state="disabled")
-
     def set_prompt_info(self, prompt):
-        self.triage_report_text.configure(state="normal")
-        self.triage_report_text.delete("1.0", tk.END)
-        self.triage_report_text.insert(tk.END, "\n\n".join([f"{key}: {value}" for key, value in prompt.triage.items()]))
-        self.triage_report_text.configure(state="disabled")
+        def get_bg(score):
+            return "green" if score < 3 else "white" if score < 5 else "dark orange" if score < 8 else "red"
+
+        def get_fg(score):
+            return "white" if score < 3 else "black" if score < 5 else "white"
+
+        def get_status_bg(status):
+            return "green" if status in ("Pass", "Complete") else "red"
+
+        def set_component(component, value, set_colors=True):
+            component.config(state="normal")
+            component.delete(0, tk.END)
+            component.insert(0, value)
+            component.config(state="disabled")
+            if set_colors:
+                component.config(disabledbackground=get_status_bg(value), disabledforeground="white")
+
+        set_component(self.u_id_text, prompt.u_id, False)
+        set_component(self.overhead_text, prompt["overhead"], False)
+
+        score = prompt["risk_score"]
+        self.risk_score_text.config(state="normal")
+        self.risk_score_text.delete(0, tk.END)
+        self.risk_score_text.insert(0, score)
+        self.risk_score_text.config(state="disabled", disabledbackground=get_bg(score), disabledforeground=get_fg(score))
+
+        set_component(self.gating_text, prompt["gating"])
+        set_component(self.annotation_verification_text, prompt["annotation_verification"].split(":")[0][:9])
+        set_component(self.layering_text, prompt["layering"])
+        set_component(self.vaccination_text, prompt["vaccination"])
 
     def update_prompt_list(self):
 
