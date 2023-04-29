@@ -101,4 +101,4 @@ class BasicStaging(Staging):
         return prompt, "Complete"
 
     def vaccination(self, prompt):
-        return prompt, "Complete"
+        return "[input]" + prompt + "[/input]", "Complete"
