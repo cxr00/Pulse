@@ -160,6 +160,7 @@ class PromptTrackerApp:
 
     def prompt_popup(self, event):
         selection = event.widget.curselection()
+        width = 50
         if selection:
             index = selection[0]
             prompt = self.current_prompts[index]
@@ -169,36 +170,36 @@ class PromptTrackerApp:
             self.popup_window.title(str(prompt))
             self.popup_window.config(padx=10, pady=10)
             tk.Label(self.popup_window, text=f"Prompt:\n{prompt['prompt_tokens']} tokens").grid(row=0, column=0)
-            text = tk.Text(self.popup_window, height=5, width=40)
+            text = tk.Text(self.popup_window, height=5, width=width)
             text.insert("1.0", str(prompt))
             text.grid(row=0, column=1)
             text.config(state="disabled")
             if prompt["gating"].lower() == "blocked":
                 tk.Label(self.popup_window, text="Gating error:").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=1, width=40)
+                text = tk.Text(self.popup_window, height=1, width=width)
                 text.insert("1.0", "Gating step blocked prompt")
                 text.grid(row=1, column=1)
                 text.config(state="disabled")
             elif prompt["annotation_verification"].lower().startswith("error"):
                 tk.Label(self.popup_window, text="Annotation verification error:").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=2, width=40)
+                text = tk.Text(self.popup_window, height=2, width=width)
                 text.insert("1.0", prompt["annotation_verification"])
                 text.grid(row=1, column=1)
                 text.config(state="disabled")
             elif prompt.post_layering:
                 tk.Label(self.popup_window, text=f"Post-layering:\n+{prompt['layering_overhead']} tokens").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=5, width=40)
+                text = tk.Text(self.popup_window, height=5, width=width)
                 text.insert("1.0", prompt.post_layering)
                 text.grid(row=1, column=1)
                 text.config(state="disabled")
                 if prompt.vaccinated:
                     tk.Label(self.popup_window, text=f"Vaccinated:\n+{prompt['layering_to_vaccinated_overhead']} tokens").grid(row=2, column=0)
-                    text = tk.Text(self.popup_window, height=5, width=40)
+                    text = tk.Text(self.popup_window, height=5, width=width)
                     text.insert("1.0", prompt.vaccinated)
                     text.grid(row=2, column=1)
                     text.config(state="disabled")
             tk.Label(self.popup_window, text=f"Full triage report:").grid(row=3, column=0)
-            text = tk.Text(self.popup_window, height=13, width=40)
+            text = tk.Text(self.popup_window, height=15, width=width)
             text.insert("1.0", json.dumps(prompt.triage, indent=2))
             text.grid(row=3, column=1)
             text.config(state="disabled")
