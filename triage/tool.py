@@ -442,10 +442,15 @@ class PromptTrackerApp:
                     text.insert("1.0", prompt.vaccinated)
                     text.grid(row=2, column=1)
                     text.config(state="disabled")
-            tk.Label(self.popup_window, text=f"Full triage report:").grid(row=3, column=0)
+                    tk.Label(self.popup_window, text=f"Output:").grid(row=3, column=0)
+                    text = tk.Text(self.popup_window, height=5, width=width)
+                    text.insert("1.0", prompt["output"])
+                    text.grid(row=3, column=1)
+                    text.config(state="disabled")
+            tk.Label(self.popup_window, text=f"Full triage report:").grid(row=4, column=0)
             text = tk.Text(self.popup_window, height=15, width=width)
             text.insert("1.0", json.dumps(prompt.triage, indent=2))
-            text.grid(row=3, column=1)
+            text.grid(row=4, column=1)
             text.config(state="disabled")
 
     def refresh_prompt(self):
