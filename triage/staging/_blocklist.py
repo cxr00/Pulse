@@ -2,7 +2,7 @@
 Blocked word list
 """
 
-blocked = [
+blocklist = [
     "damn",
     "ass",
     "hell"
