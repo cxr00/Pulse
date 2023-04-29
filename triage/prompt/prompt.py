@@ -1,8 +1,10 @@
 import ast
+import nltk
+from nltk.tokenize import word_tokenize
 import os
 import random
-
 from triage.staging import BasicStaging
+nltk.download("punkt")
 
 
 def failed_gating_prompt():
@@ -109,12 +111,12 @@ class Prompt:
         self.generate_triage_report()
 
     def generate_triage_report(self):
-        overhead = len(self.final_prompt.split()) - len(self.prompt.split())
+        overhead = len(word_tokenize(self.final_prompt)) - len(word_tokenize(self.prompt))
         report = {
             'u_id': self.u_id,
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
-            'overhead': overhead + random.randint(1, 10),
+            'overhead': overhead,
             'gating': self.stages['gating'],
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
