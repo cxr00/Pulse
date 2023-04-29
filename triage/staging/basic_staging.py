@@ -1,4 +1,4 @@
-from triage.staging import _blocklist
+from triage.staging import blocklist
 from triage.staging import Staging
 import re
 
@@ -8,12 +8,13 @@ class BasicStaging(Staging):
     Basic staging with gating of mild language and annotation verification
     """
 
-    def __init__(self):
+    def __init__(self, parameters):
         super().__init__()
+        self.parameters = parameters
 
     def gating(self, prompt):
         prompt = prompt.lower()
-        if any([blocked in prompt for blocked in _blocklist.blocked]):
+        if any([blocked in prompt for blocked in blocklist]):
             return "Blocked"
         return "Pass"
 
@@ -98,7 +99,16 @@ class BasicStaging(Staging):
         return "Pass"
 
     def layering(self, prompt):
-        return prompt, "Complete"
+        """
+        Submit prompt with meta-prompts to refine and sanitise it
+        """
+        return self.submit(prompt), "Complete"
 
     def vaccination(self, prompt):
         return "[input]" + prompt + "[/input]", "Complete"
+
+    def submit(self, prompt):
+        """
+        Submits the prompt to the AI API using set parameters
+        """
+        return prompt
