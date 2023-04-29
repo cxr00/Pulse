@@ -134,7 +134,7 @@ class Prompt:
         layering_output_tokens = len(word_tokenize(self.post_layering))
         layering_overhead = layering_output_tokens - prompt_tokens
 
-        layering_to_vaccinated_overhead = vaccinated_tokens - layering_overhead
+        layering_to_vaccinated_overhead = vaccinated_tokens - layering_output_tokens
         output_tokens = len(word_tokenize(self.output))
 
         report = {
