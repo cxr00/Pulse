@@ -1,3 +1,4 @@
+import ast
 import json
 
 import matplotlib.pyplot as plt
@@ -6,9 +7,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 
 import tkinter as tk
-from tkinter import simpledialog, ttk
+from tkinter import simpledialog, ttk, messagebox
 
 from triage.prompt import Prompt
+from triage.staging import models
 
 
 class PromptTrackerApp:
@@ -33,9 +35,47 @@ class PromptTrackerApp:
         self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.prompt_listbox.yview)
 
-        # Add prompt button
+        # Add prompt button + window components
         self.add_prompt_button = tk.Button(self.window, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
+
+        self.add_prompt_window = None
+        self.add_prompt_label = None
+        self.add_prompt_text = None
+
+        self.model_selection_label = None
+        self.model_dropdown_var = None
+        self.model_selection_dropdown = None
+
+        self.suffix_label = None
+        self.suffix_static_entry = None
+
+        self.max_tokens_label = None
+        self.max_tokens_validated_entry = None
+
+        self.temperature_label = None
+        self.temperature_entry = None
+
+        self.top_p_label = None
+        self.top_p_entry = None
+
+        self.n_label = None
+        self.n_static_entry = None
+
+        self.presence_penalty_label = None
+        self.presence_penalty_entry = None
+
+        self.frequency_penalty_label = None
+        self.frequency_penalty_entry = None
+
+        self.best_of_label = None
+        self.best_of_validated_entry = None
+
+        self.logit_bias_label = None
+        self.logit_bias_text = None
+
+        self.confirm_add_prompt_button = None
+        self.cancel_add_prompt_button = None
 
         # Delete prompt button
         self.delete_prompt_button = tk.Button(self.window, text="Delete Prompt", command=self.delete_prompt)
@@ -120,22 +160,225 @@ class PromptTrackerApp:
             self.window.update()
 
     def add_prompt(self):
+
+        def numeric_validation(value):
+            if value.isnumeric():
+                return True
+            elif value == "":
+                return True
+            return False
+
+        def confirm_add_prompt():
+            is_valid = True
+
+            # Validate all inputs then create prompt
+            max_tokens = None
+            best_of = None
+            add_prompt_text = self.add_prompt_text.get("1.0", tk.END).strip()
+            n = None
+            temperature = None
+            top_p = None
+            presence_penalty = None
+            frequency_penalty = None
+            logit_bias = None
+
+            try:
+                max_tokens = int(self.max_tokens_validated_entry.get())
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Empty token limit", "Token limit is empty", parent=self.add_prompt_window)
+
+            try:
+                best_of = int(self.best_of_validated_entry.get())
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Empty best of", "Best of is empty", parent=self.add_prompt_window)
+
+            try:
+                temperature = float(self.temperature_entry.get())
+                if 0 > temperature or 2.0 < temperature:
+                    is_valid = False
+                    messagebox.showerror("Invalid temperature", "Temperature must be between 0 and 2.0", parent=self.add_prompt_window)
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Invalid temperature", "Temperature field is not a valid float", parent=self.add_prompt_window)
+
+            try:
+                top_p = float(self.top_p_entry.get())
+                if 0 > top_p or 1.0 < top_p:
+                    is_valid = False
+                    messagebox.showerror("Invalid nucleus sampling parameter", "Nucleus sampling parameter must be between 0 and 1", parent=self.add_prompt_window)
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Invalid temperature", "Temperature field is not a valid float", parent=self.add_prompt_window)
+
+            try:
+                presence_penalty = float(self.presence_penalty_entry.get())
+                if -2.0 > presence_penalty or 2.0 < presence_penalty:
+                    is_valid = False
+                    messagebox.showerror("Invalid presence penalty", "Presence penalty parameter must be between -2.0 and 2.0", parent=self.add_prompt_window)
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Invalid presence penalty", "Presence penalty field is not a valid float", parent=self.add_prompt_window)
+
+            try:
+                frequency_penalty = float(self.frequency_penalty_entry.get())
+                if -2.0 > frequency_penalty or 2.0 < frequency_penalty:
+                    is_valid = False
+                    messagebox.showerror("Invalid frequency penalty", "Frequency penalty parameter must be between -2.0 and 2.0", parent=self.add_prompt_window)
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Invalid frequency penalty", "Frequency penalty field is not a valid float", parent=self.add_prompt_window)
+
+            try:
+                logit_bias = ast.literal_eval(self.logit_bias_text.get("1.0", tk.END))
+                if not isinstance(logit_bias, dict):
+                    is_valid = False
+                    messagebox.showerror("Invalid logit bias", "Logit bias must be dictionary", parent=self.add_prompt_window)
+            except (SyntaxError, ValueError):
+                is_valid = False
+                messagebox.showerror("Invalid logit bias", "Logit bias is malformed", parent=self.add_prompt_window)
+
+            try:
+                n = int(self.n_static_entry.get())
+            except ValueError:
+                is_valid = False
+                messagebox.showerror("Empty N", "Number of completions N is empty")
+
+            if is_valid:
+                if add_prompt_text == "":
+                    is_valid = False
+                    messagebox.showerror("Empty prompt", "Prompt field is empty")
+                elif max_tokens > 4096:
+                    is_valid = False
+                    messagebox.showerror("Max token limit", f"{max_tokens} is above max token limit of 4096", parent=self.add_prompt_window)
+                elif best_of < 1:
+                    is_valid = False
+                    messagebox.showerror("Invalid best of", "Best of parameter must be 1 or greater.", parent=self.add_prompt_window)
+
+            if is_valid:
+                d = dict()
+                d["u_id"] = "999"  # Test u_id
+                d["prompt"] = add_prompt_text
+                model_parameters = {
+                    "model": self.model_dropdown_var.get(),
+                    "suffix": self.suffix_static_entry.get(),
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "top_p": top_p,
+                    "n": n,
+                    "stream": False,
+                    "logprobs": None,
+                    "echo": False,
+                    "stop": None,
+                    "presence_penalty": presence_penalty,
+                    "frequency_penalty": frequency_penalty,
+                    "best_of": best_of,
+                    "logit_bias": logit_bias
+                }
+                d["model_parameters"] = model_parameters
+
+                new_prompt = Prompt(**d)
+                new_prompt.stage()
+                self.prompts.append(new_prompt)
+                if self.dropdown_var.get() == u_id:
+                    self.current_prompts.append(new_prompt)
+
+                self.overhead_counts.append(new_prompt["overhead"])
+                self.risk_score_counts.append(new_prompt["risk_score"])
+
+                self.refresh_stats()
+                self.update_prompt_list()
+                self.prompt_listbox.selection_set(len(self.current_prompts) - 1)
+                self.set_prompt_info(new_prompt)
+                self.add_prompt_window.destroy()
+            else:
+                self.add_prompt_window.focus_set()
+
         u_id = "999"  # Test u_id
-        prompt_text = simpledialog.askstring("Enter prompt", "Enter the prompt which you would like to add:", parent=self.window)
-        if prompt_text:
-            prompt = Prompt(u_id, prompt_text)
-            prompt.stage()
-            self.prompts.append(prompt)
-            if self.dropdown_var.get() == u_id:
-                self.current_prompts.append(prompt)
 
-            self.overhead_counts.append(prompt["overhead"])
-            self.risk_score_counts.append(prompt["risk_score"])
+        text_height = 7
+        text_width = 45
 
-            self.refresh_stats()
-            self.update_prompt_list()
-            self.prompt_listbox.selection_set(len(self.current_prompts)-1)
-            self.set_prompt_info(prompt)
+        self.add_prompt_window = tk.Toplevel(self.window)
+        self.add_prompt_window.iconbitmap("icon.ico")
+
+        self.add_prompt_label = tk.Label(self.add_prompt_window, text="Prompt:")
+        self.add_prompt_label.grid(row=0, column=0)
+        self.add_prompt_text = tk.Text(self.add_prompt_window, height=text_height, width=text_width)
+        self.add_prompt_text.grid(row=0, column=1, columnspan=2)
+
+        self.model_selection_label = tk.Label(self.add_prompt_window, text="Model:")
+        self.model_selection_label.grid(row=1, column=0)
+        self.model_dropdown_var = tk.StringVar()
+        self.model_selection_dropdown = tk.OptionMenu(self.add_prompt_window, self.model_dropdown_var, *models)
+        self.model_dropdown_var.set("gpt-3.5-turbo")
+        self.model_selection_dropdown.grid(row=1, column=1, columnspan=2)
+
+        self.suffix_label = tk.Label(self.add_prompt_window, text="Suffix:")
+        self.suffix_label.grid(row=2, column=0)
+        self.suffix_static_entry = tk.Entry(self.add_prompt_window)
+        self.suffix_static_entry.insert(0, "[/]")
+        self.suffix_static_entry.config(state="readonly")
+        self.suffix_static_entry.grid(row=2, column=1, columnspan=2)
+
+        self.max_tokens_label = tk.Label(self.add_prompt_window, text="Max tokens:")
+        self.max_tokens_label.grid(row=3, column=0)
+        self.max_tokens_validated_entry = tk.Entry(self.add_prompt_window, validate="key", validatecommand=(self.add_prompt_window.register(numeric_validation), "%P"))
+        self.max_tokens_validated_entry.grid(row=3, column=1, columnspan=2)
+        self.max_tokens_validated_entry.insert(0, "16")
+
+        self.temperature_label = tk.Label(self.add_prompt_window, text="Sampling temperature:")
+        self.temperature_label.grid(row=4, column=0)
+        self.temperature_entry = tk.Entry(self.add_prompt_window)
+        self.temperature_entry.grid(row=4, column=1, columnspan=2)
+        self.temperature_entry.insert(0, "1")
+
+        self.top_p_label = tk.Label(self.add_prompt_window, text="Nucleus sampling:")
+        self.top_p_label.grid(row=5, column=0)
+        self.top_p_entry = tk.Entry(self.add_prompt_window)
+        self.top_p_entry.grid(row=5, column=1, columnspan=2)
+        self.top_p_entry.insert(0, "1")
+
+        self.n_label = tk.Label(self.add_prompt_window, text="Number of completions (N):")
+        self.n_label.grid(row=6, column=0)
+        self.n_static_entry = tk.Entry(self.add_prompt_window)
+        self.n_static_entry.insert(0, "1")
+        self.n_static_entry.config(state="readonly")
+        self.n_static_entry.grid(row=6, column=1, columnspan=2)
+
+        self.presence_penalty_label = tk.Label(self.add_prompt_window, text="Presence penalty (-2.0 to 2.0):")
+        self.presence_penalty_label.grid(row=7, column=0)
+        self.presence_penalty_entry = tk.Entry(self.add_prompt_window)
+        self.presence_penalty_entry.grid(row=7, column=1, columnspan=2)
+        self.presence_penalty_entry.insert(0, "0")
+
+        self.frequency_penalty_label = tk.Label(self.add_prompt_window, text="Frequency penalty (-2.0 to 2.0):")
+        self.frequency_penalty_label.grid(row=8, column=0)
+        self.frequency_penalty_entry = tk.Entry(self.add_prompt_window)
+        self.frequency_penalty_entry.grid(row=8, column=1, columnspan=2)
+        self.frequency_penalty_entry.insert(0, "0")
+
+        self.best_of_label = tk.Label(self.add_prompt_window, text="Best of N:\n(must be greater than N)")
+        self.best_of_label.grid(row=9, column=0)
+        self.best_of_validated_entry = tk.Entry(self.add_prompt_window, validate="key", validatecommand=(self.add_prompt_window.register(numeric_validation), "%P"))
+        self.best_of_validated_entry.grid(row=9, column=1, columnspan=2)
+        self.best_of_validated_entry.insert(0, "1")
+
+        self.logit_bias_label = tk.Label(self.add_prompt_window, text="Logit bias")
+        self.logit_bias_label.grid(row=10, column=0)
+        self.logit_bias_text = tk.Text(self.add_prompt_window, height=text_height, width=text_width)
+        self.logit_bias_text.grid(row=10, column=1, columnspan=2)
+        self.logit_bias_text.insert("1.0", "{}")
+
+        self.confirm_add_prompt_button = tk.Button(self.add_prompt_window, text="Add Prompt", command=confirm_add_prompt)
+        self.confirm_add_prompt_button.grid(row=11, column=1)
+        self.cancel_add_prompt_button = tk.Button(self.add_prompt_window, text="Cancel", command=self.add_prompt_window.destroy)
+        self.cancel_add_prompt_button.grid(row=11, column=2)
+
+        self.add_prompt_window.iconbitmap("icon.ico")
+        self.add_prompt_window.title("Add prompt")
+        self.add_prompt_window.config(padx=10, pady=10)
 
     def delete_prompt(self):
         selection = self.prompt_listbox.curselection()
