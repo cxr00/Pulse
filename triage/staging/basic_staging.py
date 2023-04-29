@@ -102,7 +102,8 @@ class BasicStaging(Staging):
         """
         Submit prompt with meta-prompts to refine and sanitise it
         """
-        return self.submit(prompt), "Complete"
+        pre_processed_prompt = prompt
+        return pre_processed_prompt, self.submit(pre_processed_prompt), "Complete"
 
     def vaccination(self, prompt):
         return "[input]" + prompt + "[/input]", "Complete"
