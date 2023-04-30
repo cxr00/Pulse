@@ -1,4 +1,3 @@
-import ast
 import datetime
 import json
 
@@ -163,6 +162,10 @@ class Prompt:
         self.triage = report
         self.triage["cost"] = self.calc_cost()
         self.save()
+
+    def delete(self):
+        dir_path = "local"
+        os.remove(f"{dir_path}/{self['time']}.json")
 
     def save(self):
         dir_path = "local"  # hardcoded for now
