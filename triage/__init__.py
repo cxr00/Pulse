@@ -1,3 +1,1 @@
-
-if __name__ == "__main__":
-    pass
+from triage.prompt import Prompt
