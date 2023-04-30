@@ -1,15 +1,8 @@
-import ast
-import json
-
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 
 from app import PromptViewer, AnalyticsTab, AddPromptDialogue
 from triage.prompt import Prompt
-from triage.staging import models
 
 
 class PromptTrackerApp:
@@ -37,44 +30,7 @@ class PromptTrackerApp:
         # Add prompt button + window components
         self.add_prompt_button = tk.Button(self.window, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
-
         self.add_prompt_window = None
-        self.add_prompt_label = None
-        self.add_prompt_text = None
-
-        self.model_selection_label = None
-        self.model_dropdown_var = None
-        self.model_selection_dropdown = None
-
-        self.suffix_label = None
-        self.suffix_static_entry = None
-
-        self.max_tokens_label = None
-        self.max_tokens_validated_entry = None
-
-        self.temperature_label = None
-        self.temperature_entry = None
-
-        self.top_p_label = None
-        self.top_p_entry = None
-
-        self.n_label = None
-        self.n_static_entry = None
-
-        self.presence_penalty_label = None
-        self.presence_penalty_entry = None
-
-        self.frequency_penalty_label = None
-        self.frequency_penalty_entry = None
-
-        self.best_of_label = None
-        self.best_of_validated_entry = None
-
-        self.logit_bias_label = None
-        self.logit_bias_text = None
-
-        self.confirm_add_prompt_button = None
-        self.cancel_add_prompt_button = None
 
         # Delete prompt button
         self.delete_prompt_button = tk.Button(self.window, text="Delete Prompt", command=self.delete_prompt)
