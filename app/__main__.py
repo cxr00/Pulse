@@ -80,7 +80,7 @@ class PromptTrackerApp:
         self.delete_prompt_button.grid(row=0, column=1)
 
         # Select u_id dropdown menu
-        self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts]))) + ["999"]
+        self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts])))
         self.dropdown_var = tk.StringVar()
         self.u_id_dropdown_menu = tk.OptionMenu(self.window, self.dropdown_var, *self.u_id_list)
         self.u_id_dropdown_menu.grid(row=0, column=2)
@@ -147,6 +147,9 @@ class PromptTrackerApp:
         self.update_prompt_list()
 
     def run(self):
+        """
+        Properly closeable main loop
+        """
         running = True
 
         def toggle_running():
@@ -158,8 +161,16 @@ class PromptTrackerApp:
             self.window.update()
 
     def add_prompt(self):
+        """
+        Creates and displays the Add Prompt dialogue, which
+        allows users to customise an API call for a new prompt.
+        """
 
         def numeric_validation(value):
+            """
+            Validates that characters entered are numeric
+            Used for max_tokens and best_of
+            """
             if value.isnumeric():
                 return True
             elif value == "":
@@ -167,6 +178,10 @@ class PromptTrackerApp:
             return False
 
         def confirm_add_prompt():
+            """
+            Verifies that the entered values are valid,
+            then creates a prompt and closes the Add Prompt window
+            """
             is_valid = True
 
             # Validate all inputs then create prompt
@@ -380,20 +395,32 @@ class PromptTrackerApp:
         self.add_prompt_window.config(padx=10, pady=10)
 
     def delete_prompt(self):
+        """
+        Delete a prompt from the app and from local storage
+        """
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
-            self.prompts.pop(index)
-            self.overhead_counts.pop(index)
-            self.risk_score_counts.pop(index)
-            self.refresh_stats()
-            self.update_prompt_list()
+            if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.current_prompts[index])}"):
+                actual_index = self.prompts.index(self.current_prompts[index])
+                to_delete = self.prompts.pop(actual_index)
+                self.overhead_counts.pop(actual_index)
+                self.risk_score_counts.pop(actual_index)
+                to_delete.delete()
+                self.refresh_stats()
+                self.update_prompt_list()
 
     def filter(self, *args):
+        """
+        Update the currently-displayed prompts by u_id
+        """
         self.refresh_stats()
         self.update_prompt_list()
 
     def on_prompt_select(self, event):
+        """
+        Update the currently-displayed prompt staging summary
+        """
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
@@ -401,6 +428,10 @@ class PromptTrackerApp:
             self.set_prompt_info(prompt)
 
     def prompt_popup(self, event):
+        """
+        Create and display a prompt viewer popup
+        TODO: Move to its own component
+        """
         selection = event.widget.curselection()
         width = 50
         if selection:
@@ -428,10 +459,10 @@ class PromptTrackerApp:
                 text.insert("1.0", prompt["annotation_verification"])
                 text.grid(row=1, column=1)
                 text.config(state="disabled")
-            elif prompt.post_layering:
+            elif prompt["layering_output"]:
                 tk.Label(self.popup_window, text=f"Post-layering:\n+{prompt['layering_overhead']} tokens").grid(row=1, column=0)
                 text = tk.Text(self.popup_window, height=5, width=width)
-                text.insert("1.0", prompt.post_layering)
+                text.insert("1.0", prompt["layering_output"])
                 text.grid(row=1, column=1)
                 text.config(state="disabled")
                 if prompt.vaccinated:
@@ -452,6 +483,9 @@ class PromptTrackerApp:
             text.config(state="disabled")
 
     def refresh_prompt(self):
+        """
+        Unused method for cloning an existing prompt
+        """
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
@@ -470,6 +504,10 @@ class PromptTrackerApp:
             self.prompt_listbox.selection_set(len(self.current_prompts)-1)
 
     def refresh_stats(self):
+        """
+        Updates the analytics tab
+        TODO: Move to its own component class
+        """
         option_var = self.dropdown_var.get()
         plt.close("all")
 
@@ -537,6 +575,9 @@ class PromptTrackerApp:
         self.analytics_tab.select(selection)
 
     def set_prompt_info(self, prompt):
+        """
+        Uses the currently-selected prompt to set the triage overview component.
+        """
         def get_bg(score):
             return "green" if score < 3 else "white" if score < 5 else "dark orange" if score < 8 else "red"
 
@@ -569,6 +610,9 @@ class PromptTrackerApp:
         set_component(self.vaccination_text, prompt["vaccination"])
 
     def update_prompt_list(self):
+        """
+        Fills the prompt listbox based on currently-selected u_id
+        """
 
         def select_bg_and_fg(risk_score):
             if risk_score < 3:
