@@ -586,14 +586,5 @@ class PromptTrackerApp:
 
 
 if __name__ == '__main__':
-    prompt_1 = Prompt(0, "What is the capital of France?")
-    prompt_1.stage()
-    prompt_2 = Prompt(0, "[/a]What is the capital of Washington?[a]")
-    prompt_2.stage()
-    prompt_3 = Prompt(1, "[a]Test[b]test[/a]test[/b]")
-    prompt_3.stage()
-
-    prompt_2.save("test/test.txt")
-    prompt_2 = Prompt.load("test/test.txt")
-    app = PromptTrackerApp([prompt_1, prompt_2, prompt_3])
+    app = PromptTrackerApp(Prompt.load_folder("local"))
     app.run()

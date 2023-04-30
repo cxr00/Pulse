@@ -1,4 +1,7 @@
 import ast
+import datetime
+import json
+
 import nltk
 from nltk.tokenize import word_tokenize
 import os
@@ -24,8 +27,8 @@ class Prompt:
 
         dirlist = os.listdir(directory_path)
         output = []
-        for file in sorted(dirlist, key=lambda x: os.path.getmtime(os.path.join(directory_path, x)))[:n]:
-            if not file.endswith(".txt"):
+        for file in sorted(dirlist)[:n]:
+            if not file.endswith(".json"):
                 continue
             filepath = os.path.join(directory_path, file)
             try:
@@ -42,9 +45,9 @@ class Prompt:
 
         try:
             with open(filepath, "r") as f:
-                d = ast.literal_eval(f.read())
+                d = json.load(f)
         except (SyntaxError, ValueError):
-            raise ValueError("File does not contain valid prompt data")
+            raise ValueError("File does not contain valid json data")
 
         if not isinstance(d, dict) or "u_id" not in d or "prompt" not in d:
             raise ValueError("File does not contain valid prompt data")
@@ -81,9 +84,6 @@ class Prompt:
 
     def __str__(self):
         return self.prompt
-
-    def __repr__(self):
-        return str(self.triage)
 
     def calc_cost(self):
         return "{:.5f}".format(1/per * (
@@ -139,6 +139,7 @@ class Prompt:
 
         report = {
             'u_id': self.u_id,
+            'time': datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
@@ -161,7 +162,9 @@ class Prompt:
         }
         self.triage = report
         self.triage["cost"] = self.calc_cost()
+        self.save()
 
-    def save(self, filepath):
-        with open(filepath, "w+") as f:
-            f.write(repr(self))
+    def save(self):
+        dir_path = "local"  # hardcoded for now
+        with open(f"{dir_path}/{self['time']}.json", "w+") as f:
+            json.dump(self.triage, f)
