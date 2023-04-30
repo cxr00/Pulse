@@ -1,6 +1,4 @@
-from app.add_prompt_dialogue import AddPromptDialogue
-from app.analytics_tab import AnalyticsTab
-from app.prompt_viewer import PromptViewer
-from app.triage_panel import TriagePanel
+from app.components import AnalyticsTab, TriagePanel
+from app.popups import AddPromptDialogue, PromptViewer
 
 from app.pulse import Pulse
