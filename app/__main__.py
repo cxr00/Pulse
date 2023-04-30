@@ -4,10 +4,8 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-import os
-
 import tkinter as tk
-from tkinter import simpledialog, ttk, messagebox
+from tkinter import ttk, messagebox
 
 from triage.prompt import Prompt
 from triage.staging import models
