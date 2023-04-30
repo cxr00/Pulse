@@ -14,6 +14,10 @@ def get_status_bg(status):
 
 
 class TriagePanel:
+    """
+    The TriagePanel contains two Frames which display a summary
+    of triage data for a given prompt
+    """
     def __init__(self, master):
 
         self.triage_report_frame = tk.Frame(master, borderwidth=2, relief="groove")

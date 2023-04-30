@@ -5,11 +5,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class AnalyticsTab(ttk.Notebook):
+    """
+    The AnalyticsTab is a tabbed interface containing filtered
+    data based on the current prompt set
+    """
     def __init__(self, master, option_var, selection, current_prompts, current_overhead_counts, current_risk_score_counts):
         ttk.Notebook.__init__(self, master=master)
-        # option_var = master.dropdown_var.get()
         plt.close("all")
-        # selection = 0
 
         # Refresh current prompts
         l_p = len(current_prompts)

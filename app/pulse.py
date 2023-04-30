@@ -6,6 +6,11 @@ from triage.prompt import Prompt
 
 
 class Pulse(tk.Tk):
+    """
+    Pulse is an application developed by Complexor which integrates
+    prompt security into testing, monitoring, and profiling prompts created
+    by users of an application.
+    """
     def __init__(self, master=None, prompts=None):
         tk.Tk.__init__(self, master)
         self.prompts = prompts or []
@@ -28,7 +33,7 @@ class Pulse(tk.Tk):
         self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.prompt_listbox.yview)
 
-        # Add prompt button + window component
+        # Add prompt button + dialogue component
         self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
         self.add_prompt_dialogue = None
@@ -169,6 +174,9 @@ class Pulse(tk.Tk):
         self.analytics_tab = AnalyticsTab(self, option_var, selection, current_prompts, current_overhead_counts, current_risk_score_counts)
 
     def set_prompt_info(self, prompt):
+        """
+        Update the TriagePanel's information
+        """
         self.triage_panel.set_prompt_info(prompt)
 
     def update_prompt_list(self):

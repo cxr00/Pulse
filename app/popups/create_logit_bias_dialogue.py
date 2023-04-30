@@ -3,6 +3,10 @@ from tkinter import messagebox
 
 
 class CreateLogitBiasDialogue(tk.Toplevel):
+    """
+    The CreateLogitBiasDialogue provides a validated interface
+    for the creation of logit bias dictionaries for API calls
+    """
 
     @staticmethod
     def numeric_validation(value):
@@ -46,6 +50,9 @@ class CreateLogitBiasDialogue(tk.Toplevel):
         self.add_entry()
 
     def add_entry(self, key="", value=""):
+        """
+        Add a new entry with optional key and value
+        """
         self.size += 1
         new_token_number_label = tk.Label(self, text=str(self.size))
         new_token_entry = tk.Entry(self, validate="key", validatecommand=(self.register(CreateLogitBiasDialogue.numeric_validation), "%P"))
@@ -65,6 +72,9 @@ class CreateLogitBiasDialogue(tk.Toplevel):
         self.token_bias_entries.append(new_token_bias_entry)
 
     def remove_entry(self):
+        """
+        Remove the entry fields at the end
+        """
         if self.size > 1:
             self.size -= 1
             self.token_number_labels.pop(-1).destroy()
@@ -76,6 +86,9 @@ class CreateLogitBiasDialogue(tk.Toplevel):
             self.add_entry(key, value)
 
     def create_logit_bias(self):
+        """
+        Validates and returns a logit bias to the AddPromptDialogue
+        """
         for i, entry in enumerate(self.token_entries):
             try:
                 v = int(entry.get())

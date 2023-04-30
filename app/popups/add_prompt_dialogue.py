@@ -7,6 +7,10 @@ from triage.prompt import Prompt
 
 
 class AddPromptDialogue(tk.Toplevel):
+    """
+    The AddPromptDialogue provides a validated interface for
+    constructing prompts and their API call parameters
+    """
     def __init__(self, master, action):
         tk.Toplevel.__init__(self, master=master)
         self.new_prompt = None
@@ -251,5 +255,4 @@ class AddPromptDialogue(tk.Toplevel):
 
     def create_logit_bias_dialogue(self):
         self.logit_bias_dialogue and self.logit_bias_dialogue.destroy()
-
         self.logit_bias_dialogue = CreateLogitBiasDialogue(self, self.set_logit_bias, self.get_logit_bias())
