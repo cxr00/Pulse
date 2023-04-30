@@ -235,7 +235,6 @@ class PromptTrackerApp:
     def refresh_stats(self):
         """
         Updates the analytics tab
-        TODO: Move to its own component class
         """
         option_var = self.dropdown_var.get()
         current_prompts = [prompt for prompt in self.prompts if prompt.u_id == option_var or option_var == "all"]
