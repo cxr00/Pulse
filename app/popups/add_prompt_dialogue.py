@@ -1,4 +1,5 @@
 import ast
+from app.popups import CreateLogitBiasDialogue
 import tkinter as tk
 from tkinter import messagebox
 from triage import models
@@ -10,6 +11,7 @@ class AddPromptDialogue(tk.Toplevel):
         tk.Toplevel.__init__(self, master=master)
         self.new_prompt = None
         self.action = action
+        self.logit_bias_dialogue = None
 
         def numeric_validation(value):
             """
@@ -25,43 +27,41 @@ class AddPromptDialogue(tk.Toplevel):
         text_height = 7
         text_width = 45
 
-        self.iconbitmap("icon.ico")
-
         self.add_prompt_label = tk.Label(self, text="Prompt:")
         self.add_prompt_label.grid(row=0, column=0)
         self.add_prompt_text = tk.Text(self, height=text_height, width=text_width)
-        self.add_prompt_text.grid(row=0, column=1, columnspan=2)
+        self.add_prompt_text.grid(row=0, column=1, columnspan=3)
 
         self.model_selection_label = tk.Label(self, text="Model:")
         self.model_selection_label.grid(row=1, column=0)
         self.model_dropdown_var = tk.StringVar()
         self.model_selection_dropdown = tk.OptionMenu(self, self.model_dropdown_var, *models)
         self.model_dropdown_var.set("gpt-3.5-turbo")
-        self.model_selection_dropdown.grid(row=1, column=1, columnspan=2)
+        self.model_selection_dropdown.grid(row=1, column=1, columnspan=3)
 
         self.suffix_label = tk.Label(self, text="Suffix:")
         self.suffix_label.grid(row=2, column=0)
         self.suffix_static_entry = tk.Entry(self)
         self.suffix_static_entry.insert(0, "[/]")
         self.suffix_static_entry.config(state="readonly")
-        self.suffix_static_entry.grid(row=2, column=1, columnspan=2)
+        self.suffix_static_entry.grid(row=2, column=1, columnspan=3)
 
         self.max_tokens_label = tk.Label(self, text="Max tokens:")
         self.max_tokens_label.grid(row=3, column=0)
         self.max_tokens_validated_entry = tk.Entry(self, validate="key", validatecommand=(self.register(numeric_validation), "%P"))
-        self.max_tokens_validated_entry.grid(row=3, column=1, columnspan=2)
+        self.max_tokens_validated_entry.grid(row=3, column=1, columnspan=3)
         self.max_tokens_validated_entry.insert(0, "16")
 
         self.temperature_label = tk.Label(self, text="Sampling temperature:")
         self.temperature_label.grid(row=4, column=0)
         self.temperature_entry = tk.Entry(self)
-        self.temperature_entry.grid(row=4, column=1, columnspan=2)
+        self.temperature_entry.grid(row=4, column=1, columnspan=3)
         self.temperature_entry.insert(0, "1")
 
         self.top_p_label = tk.Label(self, text="Nucleus sampling:")
         self.top_p_label.grid(row=5, column=0)
         self.top_p_entry = tk.Entry(self)
-        self.top_p_entry.grid(row=5, column=1, columnspan=2)
+        self.top_p_entry.grid(row=5, column=1, columnspan=3)
         self.top_p_entry.insert(0, "1")
 
         self.n_label = tk.Label(self, text="Number of completions (N):")
@@ -69,36 +69,39 @@ class AddPromptDialogue(tk.Toplevel):
         self.n_static_entry = tk.Entry(self)
         self.n_static_entry.insert(0, "1")
         self.n_static_entry.config(state="readonly")
-        self.n_static_entry.grid(row=6, column=1, columnspan=2)
+        self.n_static_entry.grid(row=6, column=1, columnspan=3)
 
         self.presence_penalty_label = tk.Label(self, text="Presence penalty (-2.0 to 2.0):")
         self.presence_penalty_label.grid(row=7, column=0)
         self.presence_penalty_entry = tk.Entry(self)
-        self.presence_penalty_entry.grid(row=7, column=1, columnspan=2)
+        self.presence_penalty_entry.grid(row=7, column=1, columnspan=3)
         self.presence_penalty_entry.insert(0, "0")
 
         self.frequency_penalty_label = tk.Label(self, text="Frequency penalty (-2.0 to 2.0):")
         self.frequency_penalty_label.grid(row=8, column=0)
         self.frequency_penalty_entry = tk.Entry(self)
-        self.frequency_penalty_entry.grid(row=8, column=1, columnspan=2)
+        self.frequency_penalty_entry.grid(row=8, column=1, columnspan=3)
         self.frequency_penalty_entry.insert(0, "0")
 
         self.best_of_label = tk.Label(self, text="Best of N:\n(must be greater than N)")
         self.best_of_label.grid(row=9, column=0)
         self.best_of_validated_entry = tk.Entry(self, validate="key", validatecommand=(self.register(numeric_validation), "%P"))
-        self.best_of_validated_entry.grid(row=9, column=1, columnspan=2)
+        self.best_of_validated_entry.grid(row=9, column=1, columnspan=3)
         self.best_of_validated_entry.insert(0, "1")
 
         self.logit_bias_label = tk.Label(self, text="Logit bias")
         self.logit_bias_label.grid(row=10, column=0)
         self.logit_bias_text = tk.Text(self, height=text_height, width=text_width)
-        self.logit_bias_text.grid(row=10, column=1, columnspan=2)
+        self.logit_bias_text.grid(row=10, column=1, columnspan=3)
         self.logit_bias_text.insert("1.0", "{}")
+        self.logit_bias_text.config(state="disabled")
 
         self.confirm_add_prompt_button = tk.Button(self, text="Add Prompt", command=self.confirm_add_prompt)
         self.confirm_add_prompt_button.grid(row=11, column=1)
+        self.create_logit_bias_button = tk.Button(self, text="Create logit bias", command=self.create_logit_bias_dialogue)
+        self.create_logit_bias_button.grid(row=11, column=2)
         self.cancel_add_prompt_button = tk.Button(self, text="Cancel", command=self.destroy)
-        self.cancel_add_prompt_button.grid(row=11, column=2)
+        self.cancel_add_prompt_button.grid(row=11, column=3)
 
         self.iconbitmap("icon.ico")
         self.title("Add prompt")
@@ -235,3 +238,18 @@ class AddPromptDialogue(tk.Toplevel):
             self.new_prompt = Prompt(**d)
             self.new_prompt.stage()
             self.action(self.new_prompt)
+
+    def get_logit_bias(self):
+        return ast.literal_eval(self.logit_bias_text.get("1.0", tk.END))
+
+    def set_logit_bias(self, new_logit_bias):
+        self.logit_bias_text.config(state="normal")
+        self.logit_bias_text.delete("1.0", tk.END)
+        self.logit_bias_text.insert("1.0", str(new_logit_bias))
+        self.logit_bias_text.config(state="disabled")
+        self.logit_bias_dialogue.destroy()
+
+    def create_logit_bias_dialogue(self):
+        self.logit_bias_dialogue and self.logit_bias_dialogue.destroy()
+
+        self.logit_bias_dialogue = CreateLogitBiasDialogue(self, self.set_logit_bias, self.get_logit_bias())
