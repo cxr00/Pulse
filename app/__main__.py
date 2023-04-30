@@ -7,6 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+from app import PromptViewer
 from triage.prompt import Prompt
 from triage.staging import models
 
@@ -429,58 +430,13 @@ class PromptTrackerApp:
 
     def prompt_popup(self, event):
         """
-        Create and display a prompt viewer popup
-        TODO: Move to its own component
+        Create and display a PromptViewer
         """
+        self.popup_window and self.popup_window.destroy()
         selection = event.widget.curselection()
-        width = 50
         if selection:
             index = selection[0]
-            prompt = self.current_prompts[index]
-            self.popup_window and self.popup_window.destroy()
-            self.popup_window = tk.Toplevel(self.window)
-            self.popup_window.iconbitmap("icon.ico")
-            self.popup_window.title(str(prompt))
-            self.popup_window.config(padx=10, pady=10)
-            tk.Label(self.popup_window, text=f"Prompt:\n{prompt['prompt_tokens']} tokens").grid(row=0, column=0)
-            text = tk.Text(self.popup_window, height=5, width=width)
-            text.insert("1.0", str(prompt))
-            text.grid(row=0, column=1)
-            text.config(state="disabled")
-            if prompt["gating"].lower() == "blocked":
-                tk.Label(self.popup_window, text="Gating error:").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=1, width=width)
-                text.insert("1.0", "Gating step blocked prompt")
-                text.grid(row=1, column=1)
-                text.config(state="disabled")
-            elif prompt["annotation_verification"].lower().startswith("error"):
-                tk.Label(self.popup_window, text="Annotation verification error:").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=2, width=width)
-                text.insert("1.0", prompt["annotation_verification"])
-                text.grid(row=1, column=1)
-                text.config(state="disabled")
-            elif prompt["layering_output"]:
-                tk.Label(self.popup_window, text=f"Post-layering:\n+{prompt['layering_overhead']} tokens").grid(row=1, column=0)
-                text = tk.Text(self.popup_window, height=5, width=width)
-                text.insert("1.0", prompt["layering_output"])
-                text.grid(row=1, column=1)
-                text.config(state="disabled")
-                if prompt.vaccinated:
-                    tk.Label(self.popup_window, text=f"Vaccinated:\n+{prompt['layering_to_vaccinated_overhead']} tokens").grid(row=2, column=0)
-                    text = tk.Text(self.popup_window, height=5, width=width)
-                    text.insert("1.0", prompt.vaccinated)
-                    text.grid(row=2, column=1)
-                    text.config(state="disabled")
-                    tk.Label(self.popup_window, text=f"Output:").grid(row=3, column=0)
-                    text = tk.Text(self.popup_window, height=5, width=width)
-                    text.insert("1.0", prompt["output"])
-                    text.grid(row=3, column=1)
-                    text.config(state="disabled")
-            tk.Label(self.popup_window, text=f"Full triage report:").grid(row=4, column=0)
-            text = tk.Text(self.popup_window, height=15, width=width)
-            text.insert("1.0", json.dumps(prompt.triage, indent=2))
-            text.grid(row=4, column=1)
-            text.config(state="disabled")
+            self.popup_window = PromptViewer(self.window, self.current_prompts[index])
 
     def refresh_prompt(self):
         """
