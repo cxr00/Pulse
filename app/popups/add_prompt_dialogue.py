@@ -1,7 +1,7 @@
 import ast
 import tkinter as tk
 from tkinter import messagebox
-from triage.staging import models
+from triage import models
 from triage.prompt import Prompt
 
 

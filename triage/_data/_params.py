@@ -2,8 +2,8 @@
 default_params = {
     "model": "gpt_35_turbo",
     "suffix": "[/]",
-    "max_tokens":  1024,
-    "temperature": 0.7,
+    "max_tokens":  16,
+    "temperature": 1,
     "top_p": 1,
     "n": 1,
     "stream": False,
@@ -13,5 +13,6 @@ default_params = {
     "presence_penalty": 0,
     "frequency_penalty": 0,
     "best_of": 1,
-    "logit_bias": {}
+    "logit_bias": {},
+    "user": "Debug"
 }

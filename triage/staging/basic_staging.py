@@ -1,4 +1,4 @@
-from triage.staging import blocklist
+from triage import blocklist
 from triage.staging import Staging
 import re
 
