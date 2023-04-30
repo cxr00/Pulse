@@ -5,49 +5,48 @@ from app import PromptViewer, AnalyticsTab, AddPromptDialogue, TriagePanel
 from triage.prompt import Prompt
 
 
-class PromptTrackerApp:
-    def __init__(self, prompts):
-        self.prompts = prompts
-        self.current_prompts = prompts
+class PromptTrackerApp(tk.Tk):
+    def __init__(self, master=None, prompts=None):
+        tk.Tk.__init__(self, master)
+        self.prompts = prompts or []
+        self.current_prompts = prompts or []
 
-        # Root window
-        self.window = tk.Tk()
-        self.window.config(padx=5, pady=5)
-        self.window.title("Pulse - PromptOps by Complexor")
-        self.window.iconbitmap("icon.ico")
+        self.config(padx=5, pady=5)
+        self.title("Pulse - PromptOps by Complexor")
+        self.iconbitmap("icon.ico")
 
         # PromptViewer toplevel
         self.prompt_viewer_popup = None
 
         # Listbox containing recent prompts
-        self.prompt_listbox = tk.Listbox(self.window, height=10, width=50)
+        self.prompt_listbox = tk.Listbox(self, height=10, width=50)
         self.prompt_listbox.grid(row=1, column=0, columnspan=2)
         self.prompt_listbox.bind("<<ListboxSelect>>", self.on_prompt_select)
         self.prompt_listbox.bind("<Double-Button-1>", self.prompt_popup)
-        self.scrollbar = tk.Scrollbar(self.window)
+        self.scrollbar = tk.Scrollbar(self)
         self.scrollbar.grid(row=1, column=2)
         self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.prompt_listbox.yview)
 
         # Add prompt button + window component
-        self.add_prompt_button = tk.Button(self.window, text="Add Prompt", command=self.add_prompt)
+        self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
-        self.add_prompt_window = None
+        self.add_prompt_dialogue = None
 
         # Delete prompt button
-        self.delete_prompt_button = tk.Button(self.window, text="Delete Prompt", command=self.delete_prompt)
+        self.delete_prompt_button = tk.Button(self, text="Delete Prompt", command=self.delete_prompt)
         self.delete_prompt_button.grid(row=0, column=1)
 
         # Select u_id dropdown menu
         self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts])))
         self.dropdown_var = tk.StringVar()
-        self.u_id_dropdown_menu = tk.OptionMenu(self.window, self.dropdown_var, *self.u_id_list)
+        self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
         self.u_id_dropdown_menu.grid(row=0, column=2)
         self.dropdown_var.set("all")
         self.dropdown_var.trace("w", self.filter)
 
         # Triage panel
-        self.triage_panel = TriagePanel(self.window)
+        self.triage_panel = TriagePanel(self)
 
         # Analytics tabs
         self.analytics_tab = None
@@ -67,9 +66,9 @@ class PromptTrackerApp:
             nonlocal running
             running = False
 
-        self.window.protocol("WM_DELETE_WINDOW", lambda: toggle_running())
+        self.protocol("WM_DELETE_WINDOW", lambda: toggle_running())
         while running:
-            self.window.update()
+            self.update()
 
     def add_prompt(self):
         """
@@ -85,11 +84,11 @@ class PromptTrackerApp:
             self.update_prompt_list()
             self.prompt_listbox.selection_set(len(self.current_prompts) - 1)
             self.set_prompt_info(new_prompt)
-            self.add_prompt_window.destroy()
+            self.add_prompt_dialogue.destroy()
 
-        self.add_prompt_window and self.add_prompt_window.destroy()
+        self.add_prompt_dialogue and self.add_prompt_dialogue.destroy()
 
-        self.add_prompt_window = AddPromptDialogue(self.window, action=invoke_add_prompt)
+        self.add_prompt_dialogue = AddPromptDialogue(self, action=invoke_add_prompt)
 
     def delete_prompt(self):
         """
@@ -132,7 +131,7 @@ class PromptTrackerApp:
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            self.prompt_viewer_popup = PromptViewer(self.window, self.current_prompts[index])
+            self.prompt_viewer_popup = PromptViewer(self, self.current_prompts[index])
 
     def refresh_prompt(self):
         """
@@ -167,7 +166,7 @@ class PromptTrackerApp:
             selection = int(self.analytics_tab.index("current"))
         else:
             selection = 0
-        self.analytics_tab = AnalyticsTab(self.window, option_var, selection, current_prompts, current_overhead_counts, current_risk_score_counts)
+        self.analytics_tab = AnalyticsTab(self, option_var, selection, current_prompts, current_overhead_counts, current_risk_score_counts)
 
     def set_prompt_info(self, prompt):
         self.triage_panel.set_prompt_info(prompt)
@@ -192,5 +191,5 @@ class PromptTrackerApp:
 
 
 if __name__ == '__main__':
-    app = PromptTrackerApp(Prompt.load_folder("local"))
+    app = PromptTrackerApp(prompts=Prompt.load_folder("local"))
     app.run()
