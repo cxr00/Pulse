@@ -1,3 +1,4 @@
+import ast
 import json
 import tkinter as tk
 
@@ -8,12 +9,14 @@ class PromptViewer(tk.Toplevel):
     through each stage, as well as the dictionary containing the
     full triage report.
     """
-    def __init__(self, master, prompt):
+    def __init__(self, master, prompt, clone_action):
         tk.Toplevel.__init__(self, master=master)
         width = 50
         self.iconbitmap("icon.ico")
         self.title(str(prompt))
         self.config(padx=10, pady=10)
+        self.clone_action = clone_action
+        self.prompt = prompt
         tk.Label(self, text=f"Prompt:\n{prompt['prompt_tokens']} tokens").grid(row=0, column=0)
         text = tk.Text(self, height=5, width=width)
         text.insert("1.0", str(prompt))
@@ -49,7 +52,17 @@ class PromptViewer(tk.Toplevel):
                 text.grid(row=3, column=1)
                 text.config(state="disabled")
         tk.Label(self, text=f"Full triage report:").grid(row=4, column=0)
-        text = tk.Text(self, height=15, width=width)
-        text.insert("1.0", json.dumps(prompt.triage, indent=2))
-        text.grid(row=4, column=1)
-        text.config(state="disabled")
+        self.triage_text = tk.Text(self, height=15, width=width)
+        self.triage_text.insert("1.0", json.dumps(prompt.triage, indent=2))
+        self.triage_text.grid(row=4, column=1)
+        self.triage_text.config(state="disabled")
+        self.clone_button = tk.Button(self, text="Clone prompt", command=self.clone)
+        self.clone_button.grid(row=5, column=1)
+
+    def clone(self):
+        clone_dict = {
+            "prompt": self.prompt["prompt"],
+            "model_parameters": self.prompt["model_parameters"]
+        }
+        self.clone_action(clone_dict)
+        self.destroy()

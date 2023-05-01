@@ -75,7 +75,7 @@ class Pulse(tk.Tk):
         while running:
             self.update()
 
-    def add_prompt(self):
+    def add_prompt(self, prompt=None):
         """
         Creates and displays an AddPromptDialogue, which
         allows users to customise an API call for a new prompt.
@@ -91,9 +91,11 @@ class Pulse(tk.Tk):
             self.set_prompt_info(new_prompt)
             self.add_prompt_dialogue.destroy()
 
+        if prompt is None:
+            prompt = {}
         self.add_prompt_dialogue and self.add_prompt_dialogue.destroy()
 
-        self.add_prompt_dialogue = AddPromptDialogue(self, action=invoke_add_prompt)
+        self.add_prompt_dialogue = AddPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
 
     def delete_prompt(self):
         """
@@ -136,7 +138,7 @@ class Pulse(tk.Tk):
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            self.prompt_viewer_popup = PromptViewer(self, self.current_prompts[index])
+            self.prompt_viewer_popup = PromptViewer(self, self.current_prompts[index], self.add_prompt)
 
     def refresh_prompt(self):
         """

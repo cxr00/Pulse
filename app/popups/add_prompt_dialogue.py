@@ -11,11 +11,12 @@ class AddPromptDialogue(tk.Toplevel):
     The AddPromptDialogue provides a validated interface for
     constructing prompts and their API call parameters
     """
-    def __init__(self, master, action):
+    def __init__(self, master, action, prompt):
         tk.Toplevel.__init__(self, master=master)
         self.new_prompt = None
         self.action = action
         self.logit_bias_dialogue = None
+        model_params = prompt.get("model_parameters", {})
 
         def numeric_validation(value):
             """
@@ -34,13 +35,14 @@ class AddPromptDialogue(tk.Toplevel):
         self.add_prompt_label = tk.Label(self, text="Prompt:")
         self.add_prompt_label.grid(row=0, column=0)
         self.add_prompt_text = tk.Text(self, height=text_height, width=text_width)
+        self.add_prompt_text.insert("1.0", prompt.get("prompt", ""))
         self.add_prompt_text.grid(row=0, column=1, columnspan=3)
 
         self.model_selection_label = tk.Label(self, text="Model:")
         self.model_selection_label.grid(row=1, column=0)
         self.model_dropdown_var = tk.StringVar()
         self.model_selection_dropdown = tk.OptionMenu(self, self.model_dropdown_var, *models)
-        self.model_dropdown_var.set("gpt-3.5-turbo")
+        self.model_dropdown_var.set(model_params.get("model", "gpt-3.5-turbo"))
         self.model_selection_dropdown.grid(row=1, column=1, columnspan=3)
 
         self.suffix_label = tk.Label(self, text="Suffix:")
@@ -54,19 +56,19 @@ class AddPromptDialogue(tk.Toplevel):
         self.max_tokens_label.grid(row=3, column=0)
         self.max_tokens_validated_entry = tk.Entry(self, validate="key", validatecommand=(self.register(numeric_validation), "%P"))
         self.max_tokens_validated_entry.grid(row=3, column=1, columnspan=3)
-        self.max_tokens_validated_entry.insert(0, "16")
+        self.max_tokens_validated_entry.insert(0, model_params.get("max_tokens", "16"))
 
         self.temperature_label = tk.Label(self, text="Sampling temperature:")
         self.temperature_label.grid(row=4, column=0)
         self.temperature_entry = tk.Entry(self)
         self.temperature_entry.grid(row=4, column=1, columnspan=3)
-        self.temperature_entry.insert(0, "1")
+        self.temperature_entry.insert(0, model_params.get("temperature", "1"))
 
         self.top_p_label = tk.Label(self, text="Nucleus sampling:")
         self.top_p_label.grid(row=5, column=0)
         self.top_p_entry = tk.Entry(self)
         self.top_p_entry.grid(row=5, column=1, columnspan=3)
-        self.top_p_entry.insert(0, "1")
+        self.top_p_entry.insert(0, model_params.get("top_p", "1"))
 
         self.n_label = tk.Label(self, text="Number of completions (N):")
         self.n_label.grid(row=6, column=0)
@@ -79,25 +81,25 @@ class AddPromptDialogue(tk.Toplevel):
         self.presence_penalty_label.grid(row=7, column=0)
         self.presence_penalty_entry = tk.Entry(self)
         self.presence_penalty_entry.grid(row=7, column=1, columnspan=3)
-        self.presence_penalty_entry.insert(0, "0")
+        self.presence_penalty_entry.insert(0, model_params.get("presence_penalty", "0"))
 
         self.frequency_penalty_label = tk.Label(self, text="Frequency penalty (-2.0 to 2.0):")
         self.frequency_penalty_label.grid(row=8, column=0)
         self.frequency_penalty_entry = tk.Entry(self)
         self.frequency_penalty_entry.grid(row=8, column=1, columnspan=3)
-        self.frequency_penalty_entry.insert(0, "0")
+        self.frequency_penalty_entry.insert(0, model_params.get("frequency_penalty", "0"))
 
         self.best_of_label = tk.Label(self, text="Best of N:\n(must be greater than N)")
         self.best_of_label.grid(row=9, column=0)
         self.best_of_validated_entry = tk.Entry(self, validate="key", validatecommand=(self.register(numeric_validation), "%P"))
         self.best_of_validated_entry.grid(row=9, column=1, columnspan=3)
-        self.best_of_validated_entry.insert(0, "1")
+        self.best_of_validated_entry.insert(0, model_params.get("best_of", "1"))
 
         self.logit_bias_label = tk.Label(self, text="Logit bias")
         self.logit_bias_label.grid(row=10, column=0)
         self.logit_bias_text = tk.Text(self, height=text_height, width=text_width)
         self.logit_bias_text.grid(row=10, column=1, columnspan=3)
-        self.logit_bias_text.insert("1.0", "{}")
+        self.logit_bias_text.insert("1.0", model_params.get("logit_bias", "{}"))
         self.logit_bias_text.config(state="disabled")
 
         self.confirm_add_prompt_button = tk.Button(self, text="Add Prompt", command=self.confirm_add_prompt)
@@ -110,6 +112,7 @@ class AddPromptDialogue(tk.Toplevel):
         self.iconbitmap("icon.ico")
         self.title("Add prompt")
         self.config(padx=10, pady=10)
+        self.focus_set()
 
     def confirm_add_prompt(self):
         """
