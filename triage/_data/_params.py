@@ -1,6 +1,6 @@
 
 default_params = {
-    "model": "gpt_35_turbo",
+    "model": "gpt-3.5-turbo",
     "suffix": "[/]",
     "max_tokens":  16,
     "temperature": 1,
