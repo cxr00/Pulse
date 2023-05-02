@@ -57,8 +57,9 @@ class Prompt:
 
         return Prompt(**d)
 
-    def __init__(self, u_id, prompt, **kwargs):
+    def __init__(self, u_id, prompt_id, prompt, **kwargs):
         self.u_id = str(u_id)
+        self.prompt_id = str(prompt_id)
         self.prompt = prompt
         self.stages = {
             'gating': kwargs.get("gating", None),
@@ -75,7 +76,8 @@ class Prompt:
         self.output = kwargs.get("output", None)
         self.rates = kwargs.get("rates", gpt_35_turbo)
         self.triage = dict()
-        self.triage["u_id"] = u_id
+        self.triage["u_id"] = str(u_id)
+        self.triage["prompt_id"] = str(prompt_id)
         self.triage["prompt"] = prompt
         self.triage.update(kwargs)
 
@@ -139,6 +141,7 @@ class Prompt:
 
         report = {
             'u_id': self.u_id,
+            'prompt_id': self.prompt_id,
             'time': datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
