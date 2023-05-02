@@ -1,8 +1,10 @@
+import requests
 import tkinter as tk
 from tkinter import messagebox
 
 from app import PromptViewer, AnalyticsTab, AddPromptDialogue, TriagePanel
-from triage.prompt import Prompt
+from triage import Prompt
+from web import pulse_api_url, pulse_user_api_url
 
 
 class Pulse(tk.Tk):
@@ -14,7 +16,6 @@ class Pulse(tk.Tk):
     def __init__(self, master=None, prompts=None):
         tk.Tk.__init__(self, master)
         self.prompts = prompts or []
-        self.current_prompts = prompts or []
 
         self.config(padx=5, pady=5)
         self.title("Pulse - PromptOps by Complexor")
@@ -45,21 +46,19 @@ class Pulse(tk.Tk):
         # Select u_id dropdown menu
         self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts])))
         self.dropdown_var = tk.StringVar()
-        self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
-        self.u_id_dropdown_menu.grid(row=0, column=2)
+        self.u_id_dropdown_menu = None
         self.dropdown_var.set("all")
-        self.dropdown_var.trace("w", self.filter)
+        self.dropdown_var.trace("w", self.update_displayed_prompts)
 
         # Triage panel
         self.triage_panel = TriagePanel(self)
 
         # Analytics tabs
         self.analytics_tab = None
-        self.overhead_counts = [prompt["overhead"] for prompt in self.prompts]
-        self.risk_score_counts = [prompt["risk_score"] for prompt in self.prompts]
 
+        # Initialise
         self.refresh_stats()
-        self.update_prompt_list()
+        self.update_prompt_listbox()
 
     def run(self):
         """
@@ -80,14 +79,12 @@ class Pulse(tk.Tk):
         Creates and displays an AddPromptDialogue, which
         allows users to customise an API call for a new prompt.
         """
-        def invoke_add_prompt(new_prompt):
-            self.prompts.append(new_prompt)
-            self.overhead_counts.append(new_prompt["overhead"])
-            self.risk_score_counts.append(new_prompt["risk_score"])
-
+        def invoke_add_prompt(new_prompt_data):
+            new_prompt_data = requests.post(pulse_api_url, json=new_prompt_data)
+            new_prompt = Prompt(**new_prompt_data.json())
             self.refresh_stats()
-            self.update_prompt_list()
-            self.prompt_listbox.selection_set(len(self.current_prompts) - 1)
+            self.update_prompt_listbox()
+            self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.set_prompt_info(new_prompt)
             self.add_prompt_dialogue.destroy()
 
@@ -104,21 +101,18 @@ class Pulse(tk.Tk):
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
-            if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.current_prompts[index])}"):
-                actual_index = self.prompts.index(self.current_prompts[index])
-                to_delete = self.prompts.pop(actual_index)
-                self.overhead_counts.pop(actual_index)
-                self.risk_score_counts.pop(actual_index)
-                to_delete.delete()
+            if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.prompts[index])}"):
+                to_delete = self.prompts[index].prompt_id
+                requests.delete("/".join([pulse_api_url, to_delete]))
                 self.refresh_stats()
-                self.update_prompt_list()
+                self.update_prompt_listbox()
 
-    def filter(self, *args):
+    def update_displayed_prompts(self, *args):
         """
         Update the currently-displayed prompts by u_id
         """
         self.refresh_stats()
-        self.update_prompt_list()
+        self.update_prompt_listbox()
 
     def on_prompt_select(self, event):
         """
@@ -127,7 +121,7 @@ class Pulse(tk.Tk):
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            prompt = self.current_prompts[index]
+            prompt = self.prompts[index]
             self.set_prompt_info(prompt)
 
     def prompt_popup(self, event):
@@ -138,42 +132,23 @@ class Pulse(tk.Tk):
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
-            self.prompt_viewer_popup = PromptViewer(self, self.current_prompts[index], self.add_prompt)
-
-    def refresh_prompt(self):
-        """
-        Unused method for cloning an existing prompt
-        """
-        selection = self.prompt_listbox.curselection()
-        if selection:
-            index = selection[0]
-            d = self.current_prompts[index].triage
-            u_id = "999"
-            if "u_id" in d:
-                del d["u_id"]
-            prompt = Prompt(u_id, **d)
-            prompt.stage()
-            self.set_prompt_info(prompt)
-            self.prompts.append(prompt)
-            self.overhead_counts.append(prompt["overhead"])
-            self.risk_score_counts.append(prompt["risk_score"])
-            self.refresh_stats()
-            self.update_prompt_list()
-            self.prompt_listbox.selection_set(len(self.current_prompts)-1)
+            self.prompt_viewer_popup = PromptViewer(self, self.prompts[index], self.add_prompt)
 
     def refresh_stats(self):
         """
         Updates the analytics tab
         """
         option_var = self.dropdown_var.get()
-        current_prompts = [prompt for prompt in self.prompts if prompt.u_id == option_var or option_var == "all"]
-        current_overhead_counts = [count for i, count in enumerate(self.overhead_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
-        current_risk_score_counts = [count for i, count in enumerate(self.risk_score_counts) if self.prompts[i].u_id == option_var or option_var == "all"]
+        self.prompts = [Prompt(**data) for data in requests.get(pulse_user_api_url + option_var).json()]
+        self.u_id_list = ["all"] + list(set([prompt.u_id for prompt in self.prompts]))
+        self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
+        self.u_id_dropdown_menu.grid(row=0, column=2)
+
         if self.analytics_tab:
             selection = int(self.analytics_tab.index("current"))
         else:
             selection = 0
-        self.analytics_tab = AnalyticsTab(self, option_var, selection, current_prompts, current_overhead_counts, current_risk_score_counts)
+        self.analytics_tab = AnalyticsTab(self, option_var, selection, self.prompts)
 
     def set_prompt_info(self, prompt):
         """
@@ -181,7 +156,7 @@ class Pulse(tk.Tk):
         """
         self.triage_panel.set_prompt_info(prompt)
 
-    def update_prompt_list(self):
+    def update_prompt_listbox(self):
         """
         Fills the prompt listbox based on currently-selected u_id
         """
@@ -195,6 +170,6 @@ class Pulse(tk.Tk):
             return {"bg": "Red", "fg": "White"}
 
         self.prompt_listbox.delete(0, tk.END)
-        for i, prompt in enumerate(self.current_prompts):
+        for i, prompt in enumerate(self.prompts):
             self.prompt_listbox.insert(tk.END, prompt)
-            self.prompt_listbox.itemconfig(i, select_bg_and_fg(self.current_prompts[i]["risk_score"]))
+            self.prompt_listbox.itemconfig(i, select_bg_and_fg(self.prompts[i]["risk_score"]))
