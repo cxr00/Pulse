@@ -10,6 +10,7 @@ save = True
 # Data storage
 prompts = {prompt["prompt_id"]: prompt for prompt in Prompt.load_folder(local_dir)}
 CURRENT_PROMPT_ID = max([-1] + [int(prompt["prompt_id"]) for prompt in prompts.values()]) + 1
+users = list(set([prompt.triage["u_id"] for prompt_id, prompt in prompts.items()]))
 
 # GET endpoints
 @app.route('/prompts')
@@ -27,7 +28,6 @@ def get_prompt(prompt_id):
 
 @app.route('/prompts/users/<user_id>')
 def get_users_prompts(user_id):
-    users = list(set([prompt.triage["u_id"] for prompt_id, prompt in prompts.items()]))
     if user_id == "all":
         return jsonify([prompt.triage for prompt in prompts.values()])
     elif user_id in users:
@@ -64,6 +64,8 @@ def stage_prompt():
     to_add = Prompt(**prompt_data)
     to_add.stage(save=save)
     prompts[prompt_id] = to_add
+    if to_add.u_id not in users:
+        users.append(to_add.u_id)
     return jsonify(to_add.triage)
 
 
