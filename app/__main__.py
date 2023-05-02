@@ -1,9 +1,8 @@
 from app import Pulse
-from triage import Prompt
 
 
 def main():
-    app = Pulse(prompts=Prompt.load_folder("local"))
+    app = Pulse()
     app.run()
 
 
