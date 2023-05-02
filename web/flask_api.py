@@ -3,8 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from prompt import Prompt
 
 app = Flask(__name__)
-host = "127.0.0.1"
-port = 3553
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pulse.db"
 db = SQLAlchemy(app)
 
