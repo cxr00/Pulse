@@ -170,9 +170,10 @@ class Prompt:
 
     def delete(self):
         dir_path = "local"
-        os.remove(f"{dir_path}/{self['time']}.json")
+        if os.path.exists(f"{dir_path}/{self['prompt_id']}.json"):
+            os.remove(f"{dir_path}/{self['prompt_id']}.json")
 
     def save(self):
         dir_path = "local"  # hardcoded for now
-        with open(f"{dir_path}/{self['time']}.json", "w+") as f:
+        with open(f"{dir_path}/{self['prompt_id']}.json", "w+") as f:
             json.dump(self.triage, f)
