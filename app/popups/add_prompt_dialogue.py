@@ -1,9 +1,14 @@
 import ast
+
+import requests
+
 from app.popups import CreateLogitBiasDialogue
 import tkinter as tk
 from tkinter import messagebox
 from triage import models
 from triage.prompt import Prompt
+
+from web import pulse_api_url
 
 
 class AddPromptDialogue(tk.Toplevel):
@@ -244,9 +249,7 @@ class AddPromptDialogue(tk.Toplevel):
             }
             d["model_parameters"] = model_parameters
 
-            self.new_prompt = Prompt(**d)
-            self.new_prompt.stage()
-            self.action(self.new_prompt)
+            self.action(d)
 
     def get_logit_bias(self):
         return ast.literal_eval(self.logit_bias_text.get("1.0", tk.END))
