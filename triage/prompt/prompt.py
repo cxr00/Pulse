@@ -91,7 +91,7 @@ class Prompt:
             + self.rates["completion"] * (self["layering_output_tokens"] + self["output_tokens"])
         ))
 
-    def stage(self):
+    def stage(self, save=True):
         cls = self.staging_procedure(self.model_parameters)
         processed_prompt = self.prompt
 
@@ -123,9 +123,9 @@ class Prompt:
 
         self.output = cls.submit(self.vaccinated)
 
-        self.generate_triage_report()
+        self.generate_triage_report(save=save)
 
-    def generate_triage_report(self):
+    def generate_triage_report(self, save=True):
         prompt_tokens = len(word_tokenize(self.prompt))
         vaccinated_tokens = len(word_tokenize(self.vaccinated))
         overhead = vaccinated_tokens - prompt_tokens
@@ -162,7 +162,8 @@ class Prompt:
         }
         self.triage = report
         self.triage["cost"] = self.calc_cost()
-        self.save()
+        if save:
+            self.save()
 
     def delete(self):
         dir_path = "local"
