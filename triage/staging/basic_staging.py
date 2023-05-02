@@ -12,7 +12,7 @@ class BasicStaging(Staging):
         super().__init__(parameters)
 
     def gating(self, prompt):
-        prompt = prompt.lower()
+        prompt = prompt.lower().split()
         if any([blocked in prompt for blocked in blocklist]):
             return "Blocked"
         return "Pass"
