@@ -1,14 +1,8 @@
 import ast
-
-import requests
-
 from app.popups import CreateLogitBiasDialogue
 import tkinter as tk
 from tkinter import messagebox
-from triage import models
-from triage.prompt import Prompt
-
-from web import pulse_api_url
+from prompt import models
 
 
 class AddPromptDialogue(tk.Toplevel):

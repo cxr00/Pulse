@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 from app import PromptViewer, AnalyticsTab, AddPromptDialogue, TriagePanel
-from triage import Prompt
+from prompt import Prompt
 from web import pulse_api_url, pulse_user_api_url
 
 

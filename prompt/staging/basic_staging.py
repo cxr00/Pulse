@@ -1,5 +1,5 @@
-from triage import blocklist
-from triage.staging import Staging
+from prompt import blocklist
+from prompt.staging import Staging
 import re
 
 

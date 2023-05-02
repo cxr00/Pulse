@@ -5,8 +5,8 @@ import nltk
 from nltk.tokenize import word_tokenize
 import os
 import random
-from triage import gpt_35_turbo, default_params, per
-from triage.staging import BasicStaging
+from prompt import gpt_35_turbo, default_params, per
+from prompt.staging import BasicStaging
 # nltk.download("punkt")  # It's already downloaded rn
 
 

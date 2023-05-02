@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from triage import Prompt
+from prompt import Prompt
 
 app = Flask(__name__)
 host = "127.0.0.1"
