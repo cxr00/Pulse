@@ -9,8 +9,7 @@ class BasicStaging(Staging):
     """
 
     def __init__(self, parameters):
-        super().__init__()
-        self.parameters = parameters
+        super().__init__(parameters)
 
     def gating(self, prompt):
         prompt = prompt.lower()

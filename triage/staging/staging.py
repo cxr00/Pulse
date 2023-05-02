@@ -9,8 +9,8 @@ class Staging(abc.ABC):
     Create a subclass of this to implement a staging strategy
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, parameters):
+        self.parameters = parameters
 
     @abc.abstractmethod
     def gating(self, prompt):
@@ -42,5 +42,12 @@ class Staging(abc.ABC):
         """
         The act of inserting default annotations and meta-prompts
         into a prompt to make it more reslient to attack.
+        """
+        return prompt
+
+    @abc.abstractmethod
+    def submit(self, prompt):
+        """
+        The call to the AI API
         """
         return prompt
