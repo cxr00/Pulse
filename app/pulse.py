@@ -30,7 +30,7 @@ class Pulse(tk.Tk):
         self.prompt_listbox.bind("<<ListboxSelect>>", self.on_prompt_select)
         self.prompt_listbox.bind("<Double-Button-1>", self.prompt_popup)
         self.scrollbar = tk.Scrollbar(self)
-        self.scrollbar.grid(row=1, column=2)
+        self.scrollbar.grid(row=1, column=2, sticky="nsw")
         self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.prompt_listbox.yview)
 
@@ -57,8 +57,7 @@ class Pulse(tk.Tk):
         self.analytics_tab = None
 
         # Initialise
-        self.refresh_stats()
-        self.update_prompt_listbox()
+        self.update_displayed_prompts()
 
     def run(self):
         """
@@ -82,8 +81,7 @@ class Pulse(tk.Tk):
         def invoke_add_prompt(new_prompt_data):
             new_prompt_data = requests.post(pulse_api_url, json=new_prompt_data)
             new_prompt = Prompt(**new_prompt_data.json())
-            self.refresh_stats()
-            self.update_prompt_listbox()
+            self.update_displayed_prompts()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.set_prompt_info(new_prompt)
             self.add_prompt_dialogue.destroy()
@@ -104,8 +102,7 @@ class Pulse(tk.Tk):
             if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.prompts[index])}"):
                 to_delete = self.prompts[index].prompt_id
                 requests.delete("/".join([pulse_api_url, to_delete]))
-                self.refresh_stats()
-                self.update_prompt_listbox()
+                self.update_displayed_prompts()
 
     def update_displayed_prompts(self, *args):
         """
@@ -113,6 +110,12 @@ class Pulse(tk.Tk):
         """
         self.refresh_stats()
         self.update_prompt_listbox()
+        selection = self.prompt_listbox.curselection()
+        if selection:
+            index = selection[0]
+            self.set_prompt_info(self.prompts[index])
+        else:
+            self.clear_prompt_info()
 
     def on_prompt_select(self, event):
         """
@@ -149,6 +152,9 @@ class Pulse(tk.Tk):
         else:
             selection = 0
         self.analytics_tab = AnalyticsTab(self, option_var, selection, self.prompts)
+
+    def clear_prompt_info(self):
+        self.triage_panel.clear_prompt_info()
 
     def set_prompt_info(self, prompt):
         """

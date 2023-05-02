@@ -47,7 +47,7 @@ class TriagePanel:
         self.overhead_text = tk.Entry(self.triage_report_text_frame, state="disabled")
         self.overhead_text.grid(row=3, column=0, pady=1)
         self.risk_score_text = tk.Entry(self.triage_report_text_frame, state="disabled")
-        self.risk_score_text.config(bg="#f0f0f0", highlightthickness=0, borderwidth=0)
+        self.risk_score_text.config(bg="#f0f0f0", highlightthickness=0, borderwidth=1)
         self.risk_score_text.grid(row=4, column=0, pady=1)
         self.gating_text = tk.Entry(self.triage_report_text_frame, state="disabled")
         self.gating_text.grid(row=5, column=0, pady=1)
@@ -60,6 +60,26 @@ class TriagePanel:
 
         self.triage_report_frame.grid(row=1, column=3, columnspan=5, sticky="n")
         self.triage_report_text_frame.grid(row=1, column=8, columnspan=5, sticky="n")
+
+    def clear_prompt_info(self):
+        """
+        Empty all fields of the panel
+        """
+
+        def clear_component(component):
+            component.config(state="normal")
+            component.delete(0, tk.END)
+            component.config(state="disabled", disabledbackground="lightgrey")
+
+        clear_component(self.prompt_id_text)
+        clear_component(self.u_id_text)
+        clear_component(self.overhead_text)
+        clear_component(self.risk_score_text)
+        clear_component(self.gating_text)
+        clear_component(self.annotation_verification_text)
+        clear_component(self.layering_text)
+        clear_component(self.vaccination_text)
+
 
     def set_prompt_info(self, prompt):
         """
