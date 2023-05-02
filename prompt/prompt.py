@@ -3,7 +3,6 @@ import json
 
 import nltk
 from nltk.tokenize import word_tokenize
-import os
 import random
 from prompt import gpt_35_turbo, default_params, per
 from prompt.staging import BasicStaging
@@ -19,43 +18,6 @@ def failed_annotation_verification_prompt(error):
 
 
 class Prompt:
-
-    @staticmethod
-    def load_folder(directory_path, n=15, staging=None):
-        if not os.path.isdir(directory_path):
-            raise ValueError("Directory path is invalid")
-
-        dirlist = os.listdir(directory_path)
-        output = []
-        for file in sorted(dirlist)[:n]:
-            if not file.endswith(".json"):
-                continue
-            filepath = os.path.join(directory_path, file)
-            try:
-                prompt = Prompt.load(filepath, staging)
-                output.append(prompt)
-            except ValueError as exc:
-                print(filepath + " error:", exc)
-        return output
-
-    @staticmethod
-    def load(filepath, staging=None):
-        if not os.path.isfile(filepath):
-            raise ValueError("File path is invalid")
-
-        try:
-            with open(filepath, "r") as f:
-                d = json.load(f)
-        except (SyntaxError, ValueError):
-            raise ValueError("File does not contain valid json data")
-
-        if not isinstance(d, dict) or "u_id" not in d or "prompt" not in d:
-            raise ValueError("File does not contain valid prompt data")
-
-        if staging is not None and isinstance(staging, type):
-            d["staging_procedure"] = staging
-
-        return Prompt(**d)
 
     def __init__(self, u_id, prompt_id, prompt, **kwargs):
         self.u_id = str(u_id)
@@ -93,7 +55,7 @@ class Prompt:
             + self.rates["completion"] * (self["layering_output_tokens"] + self["output_tokens"])
         ))
 
-    def stage(self, save=True):
+    def stage(self):
         cls = self.staging_procedure(self.model_parameters)
         processed_prompt = self.prompt
 
@@ -125,9 +87,9 @@ class Prompt:
 
         self.output = cls.submit(self.vaccinated)
 
-        self.generate_triage_report(save=save)
+        self.generate_triage_report()
 
-    def generate_triage_report(self, save=True):
+    def generate_triage_report(self):
         prompt_tokens = len(word_tokenize(self.prompt))
         vaccinated_tokens = len(word_tokenize(self.vaccinated))
         overhead = vaccinated_tokens - prompt_tokens
@@ -142,7 +104,7 @@ class Prompt:
         report = {
             'u_id': self.u_id,
             'prompt_id': self.prompt_id,
-            'time': datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            'time': datetime.datetime.now(),
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
@@ -165,15 +127,7 @@ class Prompt:
         }
         self.triage = report
         self.triage["cost"] = self.calc_cost()
-        if save:
-            self.save()
 
-    def delete(self):
-        dir_path = "local"
-        if os.path.exists(f"{dir_path}/{self['prompt_id']}.json"):
-            os.remove(f"{dir_path}/{self['prompt_id']}.json")
-
-    def save(self):
-        dir_path = "local"  # hardcoded for now
-        with open(f"{dir_path}/{self['prompt_id']}.json", "w+") as f:
+    def save(self, filepath):
+        with open(filepath, "w+") as f:
             json.dump(self.triage, f)
