@@ -37,7 +37,9 @@ class Pulse(tk.Tk):
         # Add prompt button + dialogue component
         self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
-        self.add_prompt_dialogue = None
+        self.completion_type_selection_dialogue = None
+        self.add_completion_prompt_dialogue = None
+        self.add_chat_completion_prompt_dialogue = None
 
         # Delete prompt button
         self.delete_prompt_button = tk.Button(self, text="Delete Prompt", command=self.delete_prompt)
@@ -84,13 +86,15 @@ class Pulse(tk.Tk):
             self.update_displayed_prompts()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.set_prompt_info(new_prompt)
-            self.add_prompt_dialogue.destroy()
+            self.add_completion_prompt_dialogue.destroy()
 
         if prompt is None:
             prompt = {}
-        self.add_prompt_dialogue and self.add_prompt_dialogue.destroy()
+        self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
+        self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
+        self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
 
-        self.add_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
+        self.add_completion_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
 
     def delete_prompt(self):
         """
