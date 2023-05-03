@@ -87,7 +87,7 @@ class CreateLogitBiasDialogue(tk.Toplevel):
 
     def create_logit_bias(self):
         """
-        Validates and returns a logit bias to the AddPromptDialogue
+        Validates and returns a logit bias to the AddCompletionPromptDialogue
         """
         for i, entry in enumerate(self.token_entries):
             try:

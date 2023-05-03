@@ -4,7 +4,7 @@ import json
 import nltk
 from nltk.tokenize import word_tokenize
 import random
-from prompt import gpt_35_turbo, default_params, per
+from prompt import gpt_35_turbo, completion_default_params, per
 from prompt.staging import BasicStaging
 # nltk.download("punkt")  # It's already downloaded rn
 
@@ -34,7 +34,7 @@ class Prompt:
         self.overhead = kwargs.get("overhead", None)
         self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
         self.vaccinated = kwargs.get("vaccinated", None)
-        self.model_parameters = kwargs.get("model_parameters", default_params)
+        self.model_parameters = kwargs.get("model_parameters", completion_default_params)
         self.output = kwargs.get("output", None)
         self.rates = kwargs.get("rates", gpt_35_turbo)
         self.triage = dict()

@@ -2,7 +2,7 @@ import requests
 import tkinter as tk
 from tkinter import messagebox
 
-from app import PromptViewer, AnalyticsTab, AddPromptDialogue, TriagePanel
+from app import PromptViewer, AnalyticsTab, AddCompletionPromptDialogue, TriagePanel
 from prompt import Prompt
 from web import pulse_api_url, pulse_user_api_url
 
@@ -75,7 +75,7 @@ class Pulse(tk.Tk):
 
     def add_prompt(self, prompt=None):
         """
-        Creates and displays an AddPromptDialogue, which
+        Creates and displays an AddCompletionPromptDialogue, which
         allows users to customise an API call for a new prompt.
         """
         def invoke_add_prompt(new_prompt_data):
@@ -90,7 +90,7 @@ class Pulse(tk.Tk):
             prompt = {}
         self.add_prompt_dialogue and self.add_prompt_dialogue.destroy()
 
-        self.add_prompt_dialogue = AddPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
+        self.add_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
 
     def delete_prompt(self):
         """

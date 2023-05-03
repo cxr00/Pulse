@@ -2,12 +2,12 @@ import ast
 from app.popups import CreateLogitBiasDialogue
 import tkinter as tk
 from tkinter import messagebox
-from prompt import models
+from prompt import completion_models
 
 
-class AddPromptDialogue(tk.Toplevel):
+class AddCompletionPromptDialogue(tk.Toplevel):
     """
-    The AddPromptDialogue provides a validated interface for
+    The AddCompletionPromptDialogue provides a validated interface for
     constructing prompts and their API call parameters
     """
     def __init__(self, master, action, prompt):
@@ -40,8 +40,8 @@ class AddPromptDialogue(tk.Toplevel):
         self.model_selection_label = tk.Label(self, text="Model:")
         self.model_selection_label.grid(row=1, column=0)
         self.model_dropdown_var = tk.StringVar()
-        self.model_selection_dropdown = tk.OptionMenu(self, self.model_dropdown_var, *models)
-        self.model_dropdown_var.set(model_params.get("model", "gpt-3.5-turbo"))
+        self.model_selection_dropdown = tk.OptionMenu(self, self.model_dropdown_var, *completion_models)
+        self.model_dropdown_var.set(model_params.get("model", "text-davinci-003"))
         self.model_selection_dropdown.grid(row=1, column=1, columnspan=4)
 
         self.suffix_label = tk.Label(self, text="Suffix:")

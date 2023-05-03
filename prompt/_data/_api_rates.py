@@ -18,9 +18,3 @@ gpt_4_32k = {
     "prompt": .06,
     "completion": .12
 }
-
-models = [
-    "gpt-3.5-turbo",
-    "gpt-4",
-    "gpt-4-32k"
-]
