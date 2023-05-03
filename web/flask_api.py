@@ -10,6 +10,7 @@ class PromptModel(db.Model):
     __tablename__ = 'prompts'
     prompt_id = db.Column(db.Integer, primary_key=True)
     u_id = db.Column(db.String(50), nullable=False)
+    completion_type = db.Column(db.String(32), nullable=False)
     time = db.Column(db.DateTime, nullable=False)
     prompt = db.Column(db.String(8192), nullable=False)
     risk_score = db.Column(db.Integer, nullable=False)
@@ -26,7 +27,7 @@ class PromptModel(db.Model):
     layering_output_tokens = db.Column(db.Integer, nullable=False)
     vaccination = db.Column(db.String(255), nullable=False)
     vaccinated = db.Column(db.String(8192), nullable=False)
-    output = db.Column(db.String(32768), nullable=False)
+    output = db.Column(db.JSON, nullable=False)
     output_tokens = db.Column(db.Integer, nullable=False)
     cost = db.Column(db.Float, nullable=False)
     model_parameters = db.Column(db.JSON, nullable=False)
@@ -35,6 +36,7 @@ class PromptModel(db.Model):
         return {
             'u_id': self.u_id,
             'prompt_id': self.prompt_id,
+            "completion_type": self.completion_type,
             'time': self.time,
             'prompt': self.prompt,
             'risk_score': self.risk_score,

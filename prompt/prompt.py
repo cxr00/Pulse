@@ -19,10 +19,16 @@ def failed_annotation_verification_prompt(error):
 
 class Prompt:
 
-    def __init__(self, u_id, prompt_id, prompt, **kwargs):
+    def __init__(self, u_id, prompt_id, completion_type, prompt="", **kwargs):
         self.u_id = str(u_id)
         self.prompt_id = str(prompt_id)
-        self.prompt = prompt
+        self.completion_type = completion_type
+        if completion_type == "chat.completion":
+            self.prompt = kwargs.get("model_parameters", {}).get("messages", [{}])[-1]
+            if self.prompt:
+                self.prompt = self.prompt.get("content", "")
+        else:
+            self.prompt = prompt
         self.stages = {
             'gating': kwargs.get("gating", None),
             'annotation_verification': kwargs.get("annotation_verification", None),
@@ -85,7 +91,7 @@ class Prompt:
                 self.stages["vaccination"] = result
                 self.vaccinated = processed_prompt
 
-        self.output = cls.submit(self.vaccinated)
+        self.output = {"output": cls.submit(self.vaccinated)}
 
         self.generate_triage_report()
 
@@ -99,12 +105,13 @@ class Prompt:
         layering_overhead = layering_output_tokens - prompt_tokens
 
         layering_to_vaccinated_overhead = vaccinated_tokens - layering_output_tokens
-        output_tokens = len(word_tokenize(self.output))
+        output_tokens = len(word_tokenize(self.output["output"]))
 
         report = {
             'u_id': self.u_id,
             'prompt_id': self.prompt_id,
             'time': datetime.datetime.now(),
+            'completion_type': self.completion_type,
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
             'prompt_tokens': prompt_tokens,

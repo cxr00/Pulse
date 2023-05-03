@@ -225,6 +225,7 @@ class AddCompletionPromptDialogue(tk.Toplevel):
             d = dict()
             d["u_id"] = "999"  # Test u_id
             d["prompt"] = add_prompt_text
+            d["completion_type"] = "completion"
             model_parameters = {
                 "model": self.model_dropdown_var.get(),
                 "suffix": self.suffix_static_entry.get(),
