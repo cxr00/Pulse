@@ -2,7 +2,7 @@ import requests
 import tkinter as tk
 from tkinter import messagebox
 
-from app import PromptViewer, AnalyticsTab, AddCompletionPromptDialogue, TriagePanel
+from app import PromptViewer, AnalyticsTab, CompletionTypeSelectionDialogue, AddChatCompletionPromptDialogue, AddCompletionPromptDialogue, TriagePanel
 from prompt import Prompt
 from web import pulse_api_url, pulse_user_api_url
 
@@ -88,13 +88,22 @@ class Pulse(tk.Tk):
             self.set_prompt_info(new_prompt)
             self.add_completion_prompt_dialogue.destroy()
 
+        def create_completion_prompt_dialogue():
+            self.completion_type_selection_dialogue.destroy()
+            self.add_completion_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
+
+        def create_chat_completion_prompt_dialogue():
+            self.completion_type_selection_dialogue.destroy()
+            self.add_chat_completion_prompt_dialogue = AddChatCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
+
         if prompt is None:
             prompt = {}
         self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
         self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
         self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
 
-        self.add_completion_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
+        self.completion_type_selection_dialogue = CompletionTypeSelectionDialogue(self, create_completion_prompt_dialogue, create_chat_completion_prompt_dialogue)
+
 
     def delete_prompt(self):
         """
