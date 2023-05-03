@@ -86,7 +86,8 @@ class Pulse(tk.Tk):
             self.update_displayed_prompts()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.set_prompt_info(new_prompt)
-            self.add_completion_prompt_dialogue.destroy()
+            self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
+            self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
 
         def create_completion_prompt_dialogue():
             self.completion_type_selection_dialogue.destroy()
