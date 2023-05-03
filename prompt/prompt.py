@@ -47,6 +47,7 @@ class Prompt:
         self.triage["u_id"] = str(u_id)
         self.triage["prompt_id"] = str(prompt_id)
         self.triage["prompt"] = prompt
+        self.triage["completion_type"] = completion_type
         self.triage.update(kwargs)
 
     def __getitem__(self, item):

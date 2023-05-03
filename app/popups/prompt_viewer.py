@@ -62,6 +62,7 @@ class PromptViewer(tk.Toplevel):
     def clone(self):
         clone_dict = {
             "prompt": self.prompt["prompt"],
+            "completion_type": self.prompt["completion_type"],
             "model_parameters": self.prompt["model_parameters"]
         }
         self.clone_action(clone_dict)

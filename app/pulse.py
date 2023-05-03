@@ -90,20 +90,25 @@ class Pulse(tk.Tk):
             self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
 
         def create_completion_prompt_dialogue():
-            self.completion_type_selection_dialogue.destroy()
+            self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
             self.add_completion_prompt_dialogue = AddCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
 
         def create_chat_completion_prompt_dialogue():
-            self.completion_type_selection_dialogue.destroy()
+            self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
             self.add_chat_completion_prompt_dialogue = AddChatCompletionPromptDialogue(self, action=invoke_add_prompt, prompt=prompt)
 
         if prompt is None:
             prompt = {}
-        self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
-        self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
-        self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
+            self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
+            self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
+            self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
 
-        self.completion_type_selection_dialogue = CompletionTypeSelectionDialogue(self, create_completion_prompt_dialogue, create_chat_completion_prompt_dialogue)
+            self.completion_type_selection_dialogue = CompletionTypeSelectionDialogue(self, create_completion_prompt_dialogue, create_chat_completion_prompt_dialogue)
+        else:
+            if prompt["completion_type"] == "chat.completion":
+                create_chat_completion_prompt_dialogue()
+            else:
+                create_completion_prompt_dialogue()
 
 
     def delete_prompt(self):
