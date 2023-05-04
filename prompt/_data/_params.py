@@ -2,7 +2,7 @@
 completion_default_params = {
     "model": "text-davinci-003",
     "suffix": "[/]",
-    "max_tokens":  16,
+    "max_tokens":  64,
     "temperature": 1,
     "top_p": 1,
     "n": 1,
