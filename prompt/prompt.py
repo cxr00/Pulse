@@ -39,7 +39,7 @@ class Prompt:
         self.post_layering = kwargs.get("post_layering", "")
         self.overhead = kwargs.get("overhead", None)
         self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
-        self.vaccinated = kwargs.get("vaccinated", None)
+        self.vaccinated_prompt = kwargs.get("vaccinated_prompt", None)
         self.model_parameters = kwargs.get("model_parameters", completion_default_params)
         self.output = kwargs.get("output", None)
         self.rates = kwargs.get("rates", gpt_35_turbo)
@@ -58,12 +58,12 @@ class Prompt:
 
     def calc_cost(self):
         return "{:.5f}".format(1/per * (
-            self.rates["prompt"] * (self["layering_input_tokens"] + self["vaccinated_tokens"]) +
+            self.rates["prompt"] * (self["layering_input_tokens"] + self["vaccinated_prompt_tokens"]) +
             + self.rates["completion"] * (self["layering_output_tokens"] + self["output_tokens"])
         ))
 
     def stage(self):
-        cls = self.staging_procedure(self.model_parameters)
+        cls = self.staging_procedure(self.completion_type, self.model_parameters)
         processed_prompt = self.prompt
 
         gating_result = cls.gating(processed_prompt)
@@ -72,7 +72,7 @@ class Prompt:
             self.stages["annotation_verification"] = "Cancelled"
             self.stages["layering"] = "Cancelled"
             self.stages["vaccination"] = "Cancelled"
-            self.vaccinated = failed_gating_prompt()
+            self.vaccinated_prompt = failed_gating_prompt()
         else:
             for s in ["[]", "{}", "<>"]:
                 test = cls.annotation_verification(processed_prompt, s)
@@ -82,7 +82,7 @@ class Prompt:
             if test.lower().startswith("error:"):
                 self.stages["layering"] = "Cancelled"
                 self.stages["vaccination"] = "Cancelled"
-                self.vaccinated = failed_annotation_verification_prompt(self.stages["annotation_verification"])
+                self.vaccinated_prompt = failed_annotation_verification_prompt(self.stages["annotation_verification"])
             else:
                 pre_processed_prompt, processed_prompt, result = cls.layering(processed_prompt)
                 self.pre_layering = pre_processed_prompt
@@ -90,22 +90,25 @@ class Prompt:
                 self.post_layering = processed_prompt
                 processed_prompt, result = cls.vaccination(processed_prompt)
                 self.stages["vaccination"] = result
-                self.vaccinated = processed_prompt
+                self.vaccinated_prompt = processed_prompt
 
-        self.output = {"output": cls.submit(self.vaccinated)}
+        # TODO: Implement OpenAI API call
+        self.output = {"output": cls.submit(self.vaccinated_prompt)}
 
         self.generate_triage_report()
 
     def generate_triage_report(self):
         prompt_tokens = len(word_tokenize(self.prompt))
-        vaccinated_tokens = len(word_tokenize(self.vaccinated))
-        overhead = vaccinated_tokens - prompt_tokens
+        vaccinated_prompt_tokens = len(word_tokenize(self.vaccinated_prompt))
+        overhead = vaccinated_prompt_tokens - prompt_tokens
 
         layering_input_tokens = len(word_tokenize(self.pre_layering))
         layering_output_tokens = len(word_tokenize(self.post_layering))
         layering_overhead = layering_output_tokens - prompt_tokens
 
-        layering_to_vaccinated_overhead = vaccinated_tokens - layering_output_tokens
+        layering_to_vaccinated_overhead = vaccinated_prompt_tokens - layering_output_tokens
+
+        # TODO: Implement OpenAI API call
         output_tokens = len(word_tokenize(self.output["output"]))
 
         report = {
@@ -116,18 +119,18 @@ class Prompt:
             'prompt': self.prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
-            'vaccinated_tokens': vaccinated_tokens,
+            'vaccinated_prompt_tokens': vaccinated_prompt_tokens,
             'overhead': overhead,
             'layering_input_tokens': layering_input_tokens,
+            'layering_output': self.post_layering,
+            'layering_output_tokens': layering_output_tokens,
             'layering_overhead': layering_overhead,
             'layering_to_vaccinated_overhead': layering_to_vaccinated_overhead,
             'gating': self.stages['gating'],
             'annotation_verification': self.stages['annotation_verification'],
             'layering': self.stages['layering'],
-            'layering_output': self.post_layering,
-            'layering_output_tokens': layering_output_tokens,
             'vaccination': self.stages['vaccination'],
-            'vaccinated': self.vaccinated,
+            'vaccinated_prompt': self.vaccinated_prompt,
             'output': self.output,
             'output_tokens': output_tokens,
             "cost": None,

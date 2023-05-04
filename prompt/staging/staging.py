@@ -9,7 +9,8 @@ class Staging(abc.ABC):
     Create a subclass of this to implement a staging strategy
     """
 
-    def __init__(self, parameters):
+    def __init__(self, completion_type, parameters):
+        self.completion_type = completion_type
         self.parameters = parameters
 
     @abc.abstractmethod

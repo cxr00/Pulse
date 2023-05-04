@@ -40,10 +40,10 @@ class PromptViewer(tk.Toplevel):
             text.insert("1.0", prompt["layering_output"])
             text.grid(row=1, column=1)
             text.config(state="disabled")
-            if prompt.vaccinated:
+            if prompt.vaccinated_prompt:
                 tk.Label(self, text=f"Vaccinated:\n+{prompt['layering_to_vaccinated_overhead']} tokens").grid(row=2, column=0)
                 text = tk.Text(self, height=5, width=width)
-                text.insert("1.0", prompt.vaccinated)
+                text.insert("1.0", prompt.vaccinated_prompt)
                 text.grid(row=2, column=1)
                 text.config(state="disabled")
                 tk.Label(self, text=f"Output:").grid(row=3, column=0)

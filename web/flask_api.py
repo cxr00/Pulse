@@ -15,7 +15,7 @@ class PromptModel(db.Model):
     prompt = db.Column(db.String(8192), nullable=False)
     risk_score = db.Column(db.Integer, nullable=False)
     prompt_tokens = db.Column(db.Integer, nullable=False)
-    vaccinated_tokens = db.Column(db.Integer, nullable=False)
+    vaccinated_prompt_tokens = db.Column(db.Integer, nullable=False)
     overhead = db.Column(db.Integer, nullable=False)
     layering_input_tokens = db.Column(db.Integer, nullable=False)
     layering_overhead = db.Column(db.Integer, nullable=False)
@@ -26,7 +26,7 @@ class PromptModel(db.Model):
     layering_output = db.Column(db.String(8192), nullable=False)
     layering_output_tokens = db.Column(db.Integer, nullable=False)
     vaccination = db.Column(db.String(255), nullable=False)
-    vaccinated = db.Column(db.String(8192), nullable=False)
+    vaccinated_prompt = db.Column(db.String(8192), nullable=False)
     output = db.Column(db.JSON, nullable=False)
     output_tokens = db.Column(db.Integer, nullable=False)
     cost = db.Column(db.Float, nullable=False)
@@ -41,7 +41,7 @@ class PromptModel(db.Model):
             'prompt': self.prompt,
             'risk_score': self.risk_score,
             'prompt_tokens': self.prompt_tokens,
-            'vaccinated_tokens': self.vaccinated_tokens,
+            'vaccinated_prompt_tokens': self.vaccinated_prompt_tokens,
             'overhead': self.overhead,
             'layering_input_tokens': self.layering_input_tokens,
             'layering_overhead': self.layering_overhead,
@@ -52,7 +52,7 @@ class PromptModel(db.Model):
             'layering_output': self.layering_output,
             'layering_output_tokens': self.layering_output_tokens,
             'vaccination': self.vaccination,
-            'vaccinated': self.vaccinated,
+            'vaccinated_prompt': self.vaccinated_prompt,
             'output': self.output,
             'output_tokens': self.output_tokens,
             "cost": self.cost,

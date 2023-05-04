@@ -20,7 +20,7 @@ completion_default_params = {
 chat_completion_default_params = {
     "model": "gpt-3.5-turbo",
     "messages": [
-        {"role": "system", "content": "You are ChatGPT, a helpful AI language model."},
+        {"role": "system", "content": "You are ChatGPT, an AI language model developed by OpenAI."},
     ],
     "max_tokens": 64,
     "temperature": 1,
