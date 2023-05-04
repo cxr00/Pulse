@@ -96,13 +96,13 @@ def stage_prompt():
     prompt = Prompt(prompt_id=CURRENT_PROMPT_ID, **request.json)
     CURRENT_PROMPT_ID += 1
     prompt.stage()
-    new_prompt = PromptModel(**prompt.triage)
+    new_prompt = PromptModel(**prompt.dict())
     if new_prompt.u_id not in users:
         users.append(new_prompt.u_id)
     db.session.add(new_prompt)
     db.session.commit()
     prompts = PromptModel.query.all()
-    return jsonify(prompt.triage)
+    return jsonify(prompt.dict())
 
 # DELETE endpoints
 @app.route('/prompts/<prompt_id>', methods=['DELETE'])

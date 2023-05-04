@@ -56,7 +56,7 @@ class PromptViewer(tk.Toplevel):
                 text.config(state="disabled")
         tk.Label(self, text=f"Full triage report:").grid(row=4, column=0)
         self.triage_text = tk.Text(self, height=15, width=width)
-        self.triage_text.insert("1.0", json.dumps(prompt.triage, indent=2))
+        self.triage_text.insert("1.0", json.dumps(prompt.dict(), indent=2))
         self.triage_text.grid(row=4, column=1)
         self.triage_text.config(state="disabled")
         self.clone_button = tk.Button(self, text="Clone prompt", command=self.clone)

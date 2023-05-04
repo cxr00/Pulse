@@ -20,9 +20,12 @@ def failed_annotation_verification_prompt(error):
 class Prompt:
 
     def __init__(self, u_id, prompt_id, completion_type, prompt="", **kwargs):
-        self.u_id = str(u_id)
-        self.prompt_id = str(prompt_id)
-        self.completion_type = completion_type
+        self._data = dict()
+        self._data["u_id"] = str(u_id)
+        self._data["prompt_id"] = str(prompt_id)
+        self._data["prompt"] = prompt
+        self._data["completion_type"] = completion_type
+
         if completion_type == "chat.completion":
             self.prompt = kwargs.get("model_parameters", {}).get("messages", [{}])[-1]
             if self.prompt:
@@ -31,6 +34,7 @@ class Prompt:
         else:
             self.prompt = prompt
             self.starting_prompt = self.prompt
+
         self.pre_layering = kwargs.get("pre_layering", "")
         self.post_layering = kwargs.get("post_layering", "")
         self.overhead = kwargs.get("overhead", None)
@@ -41,21 +45,19 @@ class Prompt:
             self.model_parameters["prompt"] = self.prompt
         self.output = kwargs.get("output", None)
         self.rates = kwargs.get("rates", gpt_35_turbo)
-        self.triage = dict()
-        self.triage["u_id"] = str(u_id)
-        self.triage["prompt_id"] = str(prompt_id)
-        self.triage["prompt"] = prompt
-        self.triage["completion_type"] = completion_type
-        self.triage.update(kwargs)
+        self._data.update(kwargs)
 
     def __getitem__(self, item):
-        return self.triage[item]
+        return self._data[item]
 
     def __setitem__(self, key, value):
-        self.triage[key] = value
+        self._data[key] = value
 
     def __str__(self):
         return self.starting_prompt
+
+    def dict(self):
+        return self._data
 
     def calc_cost(self):
         return "{:.5f}".format(1/per * (
@@ -64,9 +66,8 @@ class Prompt:
         ))
 
     def stage(self):
-        cls = self.staging_procedure(self.completion_type, self.model_parameters)
+        cls = self.staging_procedure(self["completion_type"], self.model_parameters)
         processed_prompt = self.starting_prompt
-        print("0:", self.prompt)
 
         gating_result = cls.gating(processed_prompt)
         self["gating"] = gating_result
@@ -93,9 +94,8 @@ class Prompt:
                 processed_prompt, result = cls.vaccination(processed_prompt)
                 self["vaccination"] = result
                 self.vaccinated_prompt = processed_prompt
-                print("1:", self.prompt)
 
-        if self.completion_type == "chat.completion":
+        if self["completion_type"] == "chat.completion":
             cls.parameters["messages"][-1]["content"] = self.vaccinated_prompt
         else:
             cls.parameters["prompt"] = self.vaccinated_prompt
@@ -115,16 +115,16 @@ class Prompt:
 
         layering_to_vaccinated_overhead = vaccinated_prompt_tokens - layering_output_tokens
 
-        if self.completion_type == "chat.completion":
+        if self["completion_type"] == "chat.completion":
             output_tokens = len(word_tokenize(self.output["choices"][0]["message"]["content"]))
         else:
             output_tokens = len(word_tokenize(self.output["choices"][0]["text"]))
 
         report = {
-            'u_id': self.u_id,
-            'prompt_id': self.prompt_id,
+            'u_id': self["u_id"],
+            'prompt_id': self["prompt_id"],
             'time': datetime.datetime.now(),
-            'completion_type': self.completion_type,
+            'completion_type': self["completion_type"],
             'prompt': self.starting_prompt,
             'risk_score': random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
@@ -145,9 +145,9 @@ class Prompt:
             "cost": None,
             'model_parameters': self.model_parameters
         }
-        self.triage = report
-        self.triage["cost"] = self.calc_cost()
+        self._data = report
+        self._data["cost"] = self.calc_cost()
 
     def save(self, filepath):
         with open(filepath, "w+") as f:
-            json.dump(self.triage, f)
+            json.dump(self._data, f)

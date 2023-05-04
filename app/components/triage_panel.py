@@ -94,8 +94,8 @@ class TriagePanel:
             if set_colors:
                 component.config(disabledbackground=get_status_bg(value), disabledforeground="white")
 
-        set_component(self.prompt_id_text, prompt.prompt_id, False)
-        set_component(self.u_id_text, prompt.u_id, False)
+        set_component(self.prompt_id_text, prompt["prompt_id"], False)
+        set_component(self.u_id_text, prompt["u_id"], False)
         set_component(self.overhead_text, prompt["overhead"], False)
 
         score = prompt["risk_score"]

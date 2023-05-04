@@ -46,7 +46,7 @@ class Pulse(tk.Tk):
         self.delete_prompt_button.grid(row=0, column=1)
 
         # Select u_id dropdown menu
-        self.u_id_list = ["all"] + sorted(list(set([prompt.u_id for prompt in self.prompts])))
+        self.u_id_list = ["all"] + sorted(list(set([prompt["u_id"] for prompt in self.prompts])))
         self.dropdown_var = tk.StringVar()
         self.u_id_dropdown_menu = None
         self.dropdown_var.set("all")
@@ -162,7 +162,7 @@ class Pulse(tk.Tk):
         """
         option_var = self.dropdown_var.get()
         self.prompts = [Prompt(**data) for data in requests.get(pulse_user_api_url + option_var).json()]
-        self.u_id_list = ["all"] + list(set([prompt.u_id for prompt in self.prompts]))
+        self.u_id_list = ["all"] + list(set([prompt["u_id"] for prompt in self.prompts]))
         self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
         self.u_id_dropdown_menu.grid(row=0, column=2)
 
