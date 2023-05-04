@@ -35,6 +35,10 @@ class AddCompletionPromptDialogue(tk.Toplevel):
         self.add_prompt_label.grid(row=0, column=0)
         self.add_prompt_text = tk.Text(self, height=text_height, width=text_width)
         self.add_prompt_text.insert("1.0", prompt.get("prompt", ""))
+        if prompt:
+            to_insert = prompt["output"].get("choices", [{}])
+            to_insert = to_insert[0].get("text", "")
+            self.add_prompt_text.insert(tk.END, to_insert)
         self.add_prompt_text.grid(row=0, column=1, columnspan=4)
 
         self.model_selection_label = tk.Label(self, text="Model:")
@@ -55,7 +59,7 @@ class AddCompletionPromptDialogue(tk.Toplevel):
         self.max_tokens_label.grid(row=3, column=0)
         self.max_tokens_validated_entry = tk.Entry(self, validate="key", validatecommand=(self.register(numeric_validation), "%P"))
         self.max_tokens_validated_entry.grid(row=3, column=1, columnspan=4)
-        self.max_tokens_validated_entry.insert(0, model_params.get("max_tokens", "16"))
+        self.max_tokens_validated_entry.insert(0, model_params.get("max_tokens", "64"))
 
         self.temperature_label = tk.Label(self, text="Sampling temperature:")
         self.temperature_label.grid(row=4, column=0)
