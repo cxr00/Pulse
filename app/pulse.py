@@ -2,7 +2,8 @@ import requests
 import tkinter as tk
 from tkinter import messagebox
 
-from app import PromptViewer, AnalyticsTab, CompletionTypeSelectionDialogue, AddChatCompletionPromptDialogue, AddCompletionPromptDialogue, TriagePanel
+from app import PromptViewer, AnalyticsTab, CompletionTypeSelectionDialogue, AddChatCompletionPromptDialogue, \
+    AddCompletionPromptDialogue, TriagePanel, PromptListbox
 from prompt import Prompt
 from web import pulse_api_url, pulse_user_api_url
 
@@ -25,14 +26,10 @@ class Pulse(tk.Tk):
         self.prompt_viewer_popup = None
 
         # Listbox containing recent prompts
-        self.prompt_listbox = tk.Listbox(self, height=10, width=50)
-        self.prompt_listbox.grid(row=1, column=0, columnspan=2)
-        self.prompt_listbox.bind("<<ListboxSelect>>", self.on_prompt_select)
-        self.prompt_listbox.bind("<Double-Button-1>", self.prompt_popup)
         self.scrollbar = tk.Scrollbar(self)
         self.scrollbar.grid(row=1, column=2, sticky="nsw")
-        self.prompt_listbox.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.prompt_listbox.yview)
+        self.prompt_listbox = PromptListbox(self, self.on_prompt_select, self.prompt_popup, self.scrollbar)
+        self.prompt_listbox.grid(row=1, column=0, columnspan=2)
 
         # Add prompt button + dialogue component
         self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
@@ -128,7 +125,6 @@ class Pulse(tk.Tk):
         Update the currently-displayed prompts by u_id
         """
         self.refresh_stats()
-        self.update_prompt_listbox()
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
@@ -172,6 +168,8 @@ class Pulse(tk.Tk):
             selection = 0
         self.analytics_tab = AnalyticsTab(self, option_var, selection, self.prompts)
 
+        self.prompt_listbox.update_prompts(self.prompts)
+
     def clear_prompt_info(self):
         self.triage_panel.clear_prompt_info()
 
@@ -180,21 +178,3 @@ class Pulse(tk.Tk):
         Update the TriagePanel's information
         """
         self.triage_panel.set_prompt_info(prompt)
-
-    def update_prompt_listbox(self):
-        """
-        Fills the prompt listbox based on currently-selected u_id
-        """
-        def select_bg_and_fg(risk_score):
-            if risk_score < 3:
-                return {"bg": "Green", "fg": "White"}
-            elif risk_score < 5:
-                return {}
-            elif risk_score < 8:
-                return {"bg": "Dark Orange", "fg": "White"}
-            return {"bg": "Red", "fg": "White"}
-
-        self.prompt_listbox.delete(0, tk.END)
-        for i, prompt in enumerate(self.prompts):
-            self.prompt_listbox.insert(tk.END, prompt["prompt"])
-            self.prompt_listbox.itemconfig(i, select_bg_and_fg(self.prompts[i]["risk_score"]))
