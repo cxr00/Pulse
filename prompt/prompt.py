@@ -31,12 +31,6 @@ class Prompt:
         else:
             self.prompt = prompt
             self.starting_prompt = self.prompt
-        self.stages = {
-            'gating': kwargs.get("gating", None),
-            'annotation_verification': kwargs.get("annotation_verification", None),
-            'layering': kwargs.get("layering", None),
-            'vaccination': kwargs.get("vaccination", None)
-        }
         self.pre_layering = kwargs.get("pre_layering", "")
         self.post_layering = kwargs.get("post_layering", "")
         self.overhead = kwargs.get("overhead", None)
@@ -57,6 +51,9 @@ class Prompt:
     def __getitem__(self, item):
         return self.triage[item]
 
+    def __setitem__(self, key, value):
+        self.triage[key] = value
+
     def __str__(self):
         return self.starting_prompt
 
@@ -72,29 +69,29 @@ class Prompt:
         print("0:", self.prompt)
 
         gating_result = cls.gating(processed_prompt)
-        self.stages["gating"] = gating_result
+        self["gating"] = gating_result
         if gating_result.lower().startswith("blocked"):
-            self.stages["annotation_verification"] = "Cancelled"
-            self.stages["layering"] = "Cancelled"
-            self.stages["vaccination"] = "Cancelled"
+            self["annotation_verification"] = "Cancelled"
+            self["layering"] = "Cancelled"
+            self["vaccination"] = "Cancelled"
             self.vaccinated_prompt = failed_gating_prompt()
         else:
             for s in ["[]", "{}", "<>"]:
                 test = cls.annotation_verification(processed_prompt, s)
                 if test.lower().startswith("error"):
                     break
-            self.stages["annotation_verification"] = test
+            self["annotation_verification"] = test
             if test.lower().startswith("error:"):
-                self.stages["layering"] = "Cancelled"
-                self.stages["vaccination"] = "Cancelled"
-                self.vaccinated_prompt = failed_annotation_verification_prompt(self.stages["annotation_verification"])
+                self["layering"] = "Cancelled"
+                self["vaccination"] = "Cancelled"
+                self.vaccinated_prompt = failed_annotation_verification_prompt(self["annotation_verification"])
             else:
                 pre_processed_prompt, processed_prompt, result = cls.layering(processed_prompt)
                 self.pre_layering = pre_processed_prompt
-                self.stages["layering"] = result
+                self["layering"] = result
                 self.post_layering = processed_prompt
                 processed_prompt, result = cls.vaccination(processed_prompt)
-                self.stages["vaccination"] = result
+                self["vaccination"] = result
                 self.vaccinated_prompt = processed_prompt
                 print("1:", self.prompt)
 
@@ -129,7 +126,7 @@ class Prompt:
             'time': datetime.datetime.now(),
             'completion_type': self.completion_type,
             'prompt': self.starting_prompt,
-            'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
+            'risk_score': random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
             'vaccinated_prompt_tokens': vaccinated_prompt_tokens,
             'overhead': overhead,
@@ -138,10 +135,10 @@ class Prompt:
             'layering_output_tokens': layering_output_tokens,
             'layering_overhead': layering_overhead,
             'layering_to_vaccinated_overhead': layering_to_vaccinated_overhead,
-            'gating': self.stages['gating'],
-            'annotation_verification': self.stages['annotation_verification'],
-            'layering': self.stages['layering'],
-            'vaccination': self.stages['vaccination'],
+            'gating': self['gating'],
+            'annotation_verification': self['annotation_verification'],
+            'layering': self['layering'],
+            'vaccination': self['vaccination'],
             'vaccinated_prompt': self.vaccinated_prompt,
             'output': self.output,
             'output_tokens': output_tokens,
