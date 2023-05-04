@@ -47,8 +47,8 @@ class Staging(abc.ABC):
         return prompt
 
     @abc.abstractmethod
-    def submit(self, prompt):
+    def submit(self, prompt=None):
         """
         The call to the AI API
         """
-        return prompt
+        pass

@@ -1,3 +1,5 @@
+import openai
+
 from prompt import blocklist
 from prompt.staging import Staging
 import re
@@ -107,8 +109,11 @@ class BasicStaging(Staging):
     def vaccination(self, prompt):
         return "[input]" + prompt + "[/input]", "Complete"
 
-    def submit(self, prompt):
+    def submit(self, prompt=None):
         """
         Submits the prompt to the AI API using set parameters
         """
-        return prompt
+        if self.completion_type == "chat.completion":
+            return openai.ChatCompletion.create(**self.parameters)
+        self.parameters["prompt"] = prompt
+        return openai.Completion.create(**self.parameters)
