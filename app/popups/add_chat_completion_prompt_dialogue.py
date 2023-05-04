@@ -45,6 +45,11 @@ class AddChatCompletionPromptDialogue(tk.Toplevel):
         for message in self.previous_messages:
             if message["role"] != "system":
                 self.previous_messages_text.insert(tk.END, str(message) + "\n")
+        if prompt:
+            to_insert = prompt["output"]["choices"][0]["message"]["content"]
+            to_insert = {"role": "assistant", "content": to_insert}
+            self.previous_messages_text.insert(tk.END, str(to_insert))
+            self.previous_messages.append(to_insert)
         self.previous_messages_text.grid(row=1, column=1, columnspan=4)
         self.previous_messages_text.config(state="disabled")
 
