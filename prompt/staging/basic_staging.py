@@ -8,8 +8,8 @@ class BasicStaging(Staging):
     Basic staging with gating of mild language and annotation verification
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, completion_type, parameters):
+        super().__init__(completion_type, parameters)
 
     def gating(self, prompt):
         prompt = prompt.lower().split()
@@ -101,8 +101,8 @@ class BasicStaging(Staging):
         """
         Submit prompt with meta-prompts to refine and sanitise it
         """
-        pre_processed_prompt = prompt
-        return pre_processed_prompt, self.submit(pre_processed_prompt), "Complete"
+        pre_processed_prompt = post_processed_prompt = prompt
+        return pre_processed_prompt, post_processed_prompt, "Complete"
 
     def vaccination(self, prompt):
         return "[input]" + prompt + "[/input]", "Complete"

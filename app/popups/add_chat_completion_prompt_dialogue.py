@@ -128,6 +128,7 @@ class AddChatCompletionPromptDialogue(tk.Toplevel):
         # Validate all inputs then create prompt
         max_tokens = None
         add_prompt_text = self.add_message_text.get("1.0", tk.END).strip()
+        system_message_text = self.system_message_text.get("1.0", tk.END).strip()
         n = None
         temperature = None
         top_p = None
@@ -207,11 +208,14 @@ class AddChatCompletionPromptDialogue(tk.Toplevel):
         if is_valid:
             if add_prompt_text == "":
                 is_valid = False
-                messagebox.showerror("Empty prompt", "Prompt field is empty")
+                messagebox.showerror("Empty prompt", "Prompt field is empty", parent=self)
             elif max_tokens > 4096:
                 is_valid = False
                 messagebox.showerror("Max token limit", f"{max_tokens} is above max token limit of 4096",
                                      parent=self)
+            elif system_message_text == "":
+                is_valid = False
+                messagebox.showerror("Empty system message", "System message is empty", parent=self)
 
         if is_valid:
             d = dict()
