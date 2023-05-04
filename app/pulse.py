@@ -16,13 +16,13 @@ class Pulse(tk.Tk):
     """
     def __init__(self, master=None, prompts=None):
         tk.Tk.__init__(self, master)
-        self.prompts = prompts or []
+        self.prompts: list[Prompt] = prompts or []
 
         self.config(padx=5, pady=5)
         self.title("Pulse - PromptOps by Complexor")
         self.iconbitmap("icon.ico")
 
-        # PromptViewer toplevel
+        # PromptViewer for individual prompts
         self.prompt_viewer_popup = None
 
         # Listbox containing recent prompts
@@ -31,9 +31,11 @@ class Pulse(tk.Tk):
         self.prompt_listbox = PromptListbox(self, self.on_prompt_select, self.show_prompt_viewer, self.scrollbar)
         self.prompt_listbox.grid(row=1, column=0, columnspan=2)
 
-        # Add prompt button + dialogue components
+        # Add prompt button
         self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
+
+        # Prompt creation dialogues
         self.completion_type_selection_dialogue = None
         self.add_completion_prompt_dialogue = None
         self.add_chat_completion_prompt_dialogue = None
@@ -116,7 +118,7 @@ class Pulse(tk.Tk):
         if selection:
             index = selection[0]
             if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.prompts[index])}"):
-                to_delete = self.prompts[index].prompt_id
+                to_delete = self.prompts[index]["prompt_id"]
                 requests.delete("/".join([pulse_api_url, to_delete]))
                 self.update_components()
 
@@ -124,7 +126,7 @@ class Pulse(tk.Tk):
         """
         Update components to display prompts by selected u_id
         """
-        self.refresh_stats()
+        self.refresh_analytics_tab()
 
         selection = self.prompt_listbox.curselection()
         if selection:
@@ -134,6 +136,10 @@ class Pulse(tk.Tk):
             self.triage_panel.clear_prompt_info()
 
         self.prompt_listbox.update_prompts(self.prompts)
+
+        self.u_id_list = ["all"] + list(set([prompt["u_id"] for prompt in self.prompts]))
+        self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
+        self.u_id_dropdown_menu.grid(row=0, column=2)
 
     def on_prompt_select(self, event):
         """
@@ -155,15 +161,12 @@ class Pulse(tk.Tk):
             index = selection[0]
             self.prompt_viewer_popup = PromptViewer(self, self.prompts[index], self.add_prompt)
 
-    def refresh_stats(self):
+    def refresh_analytics_tab(self):
         """
         Updates the analytics tab
         """
         option_var = self.dropdown_var.get()
         self.prompts = [Prompt(**data) for data in requests.get(pulse_user_api_url + option_var).json()]
-        self.u_id_list = ["all"] + list(set([prompt["u_id"] for prompt in self.prompts]))
-        self.u_id_dropdown_menu = tk.OptionMenu(self, self.dropdown_var, *self.u_id_list)
-        self.u_id_dropdown_menu.grid(row=0, column=2)
 
         if self.analytics_tab:
             selection = int(self.analytics_tab.index("current"))
