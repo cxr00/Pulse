@@ -82,11 +82,12 @@ class Pulse(tk.Tk):
         def invoke_add_prompt(new_prompt_data):
             self.add_completion_prompt_dialogue and self.add_completion_prompt_dialogue.destroy()
             self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
-            new_prompt_data = requests.post(pulse_api_url, json=new_prompt_data)
-            new_prompt = Prompt(**new_prompt_data.json())
+            new_prompt = requests.post(pulse_api_url, json=new_prompt_data)
+            new_prompt = Prompt(**new_prompt.json())
             self.update_components()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.triage_panel.set_prompt_info(new_prompt)
+            self.prompt_listbox.yview_moveto(1.0)
 
         def create_completion_prompt_dialogue():
             self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
