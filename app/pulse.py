@@ -28,10 +28,10 @@ class Pulse(tk.Tk):
         # Listbox containing recent prompts
         self.scrollbar = tk.Scrollbar(self)
         self.scrollbar.grid(row=1, column=2, sticky="nsw")
-        self.prompt_listbox = PromptListbox(self, self.on_prompt_select, self.prompt_popup, self.scrollbar)
+        self.prompt_listbox = PromptListbox(self, self.on_prompt_select, self.show_prompt_viewer, self.scrollbar)
         self.prompt_listbox.grid(row=1, column=0, columnspan=2)
 
-        # Add prompt button + dialogue component
+        # Add prompt button + dialogue components
         self.add_prompt_button = tk.Button(self, text="Add Prompt", command=self.add_prompt)
         self.add_prompt_button.grid(row=0, column=0)
         self.completion_type_selection_dialogue = None
@@ -47,7 +47,7 @@ class Pulse(tk.Tk):
         self.dropdown_var = tk.StringVar()
         self.u_id_dropdown_menu = None
         self.dropdown_var.set("all")
-        self.dropdown_var.trace("w", self.update_displayed_prompts)
+        self.dropdown_var.trace("w", self.update_components)
 
         # Triage panel
         self.triage_panel = TriagePanel(self)
@@ -56,7 +56,7 @@ class Pulse(tk.Tk):
         self.analytics_tab = None
 
         # Initialise
-        self.update_displayed_prompts()
+        self.update_components()
 
     def run(self):
         """
@@ -82,7 +82,7 @@ class Pulse(tk.Tk):
             self.add_chat_completion_prompt_dialogue and self.add_chat_completion_prompt_dialogue.destroy()
             new_prompt_data = requests.post(pulse_api_url, json=new_prompt_data)
             new_prompt = Prompt(**new_prompt_data.json())
-            self.update_displayed_prompts()
+            self.update_components()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
             self.set_triage_panel(new_prompt)
 
@@ -118,19 +118,22 @@ class Pulse(tk.Tk):
             if messagebox.askokcancel("Confirm deletion", f"Are you sure you want to delete the prompt?\n{str(self.prompts[index])}"):
                 to_delete = self.prompts[index].prompt_id
                 requests.delete("/".join([pulse_api_url, to_delete]))
-                self.update_displayed_prompts()
+                self.update_components()
 
-    def update_displayed_prompts(self, *args):
+    def update_components(self, *args):
         """
-        Update the currently-displayed prompts by u_id
+        Update components to display prompts by selected u_id
         """
         self.refresh_stats()
+
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
             self.set_triage_panel(self.prompts[index])
         else:
-            self.clear_prompt_info()
+            self.clear_triage_panel()
+
+        self.prompt_listbox.update_prompts(self.prompts)
 
     def on_prompt_select(self, event):
         """
@@ -142,7 +145,7 @@ class Pulse(tk.Tk):
             prompt = self.prompts[index]
             self.set_triage_panel(prompt)
 
-    def prompt_popup(self, event):
+    def show_prompt_viewer(self, event):
         """
         Create and display a PromptViewer
         """
@@ -168,9 +171,7 @@ class Pulse(tk.Tk):
             selection = 0
         self.analytics_tab = AnalyticsTab(self, option_var, selection, self.prompts)
 
-        self.prompt_listbox.update_prompts(self.prompts)
-
-    def clear_prompt_info(self):
+    def clear_triage_panel(self):
         self.triage_panel.clear_prompt_info()
 
     def set_triage_panel(self, prompt):
