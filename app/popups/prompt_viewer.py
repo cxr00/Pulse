@@ -19,7 +19,7 @@ class PromptViewer(tk.Toplevel):
         self.prompt = prompt
         tk.Label(self, text=f"Prompt:\n{prompt['prompt_tokens']} tokens").grid(row=0, column=0)
         text = tk.Text(self, height=5, width=width)
-        text.insert("1.0", str(prompt))
+        text.insert("1.0", prompt["prompt"])
         text.grid(row=0, column=1)
         text.config(state="disabled")
         if prompt["gating"].lower() == "blocked":
@@ -48,7 +48,10 @@ class PromptViewer(tk.Toplevel):
                 text.config(state="disabled")
                 tk.Label(self, text=f"Output:").grid(row=3, column=0)
                 text = tk.Text(self, height=5, width=width)
-                text.insert("1.0", prompt["output"])
+                if prompt["completion_type"] == "chat.completion":
+                    text.insert("1.0", prompt["output"]["choices"][0]["message"]["content"])
+                else:
+                    text.insert("1.0", prompt["output"]["choices"][0]["text"])
                 text.grid(row=3, column=1)
                 text.config(state="disabled")
         tk.Label(self, text=f"Full triage report:").grid(row=4, column=0)
@@ -62,6 +65,7 @@ class PromptViewer(tk.Toplevel):
     def clone(self):
         clone_dict = {
             "prompt": self.prompt["prompt"],
+            "output": self.prompt["output"],
             "completion_type": self.prompt["completion_type"],
             "model_parameters": self.prompt["model_parameters"]
         }

@@ -27,8 +27,10 @@ class Prompt:
             self.prompt = kwargs.get("model_parameters", {}).get("messages", [{}])[-1]
             if self.prompt:
                 self.prompt = self.prompt.get("content", "")
+                self.starting_prompt = self.prompt
         else:
             self.prompt = prompt
+            self.starting_prompt = self.prompt
         self.stages = {
             'gating': kwargs.get("gating", None),
             'annotation_verification': kwargs.get("annotation_verification", None),
@@ -41,6 +43,8 @@ class Prompt:
         self.staging_procedure = kwargs.get("staging_procedure", BasicStaging)
         self.vaccinated_prompt = kwargs.get("vaccinated_prompt", None)
         self.model_parameters = kwargs.get("model_parameters", completion_default_params)
+        if completion_type != "chat.completion":
+            self.model_parameters["prompt"] = self.prompt
         self.output = kwargs.get("output", None)
         self.rates = kwargs.get("rates", gpt_35_turbo)
         self.triage = dict()
@@ -54,7 +58,7 @@ class Prompt:
         return self.triage[item]
 
     def __str__(self):
-        return self.prompt
+        return self.starting_prompt
 
     def calc_cost(self):
         return "{:.5f}".format(1/per * (
@@ -64,7 +68,8 @@ class Prompt:
 
     def stage(self):
         cls = self.staging_procedure(self.completion_type, self.model_parameters)
-        processed_prompt = self.prompt
+        processed_prompt = self.starting_prompt
+        print("0:", self.prompt)
 
         gating_result = cls.gating(processed_prompt)
         self.stages["gating"] = gating_result
@@ -91,9 +96,14 @@ class Prompt:
                 processed_prompt, result = cls.vaccination(processed_prompt)
                 self.stages["vaccination"] = result
                 self.vaccinated_prompt = processed_prompt
+                print("1:", self.prompt)
 
-        # TODO: Implement OpenAI API call
-        self.output = {"output": cls.submit(self.vaccinated_prompt)}
+        if self.completion_type == "chat.completion":
+            cls.parameters["messages"][-1]["content"] = self.vaccinated_prompt
+        else:
+            cls.parameters["prompt"] = self.vaccinated_prompt
+
+        self.output = cls.submit()
 
         self.generate_triage_report()
 
@@ -108,15 +118,17 @@ class Prompt:
 
         layering_to_vaccinated_overhead = vaccinated_prompt_tokens - layering_output_tokens
 
-        # TODO: Implement OpenAI API call
-        output_tokens = len(word_tokenize(self.output["output"]))
+        if self.completion_type == "chat.completion":
+            output_tokens = len(word_tokenize(self.output["choices"][0]["message"]["content"]))
+        else:
+            output_tokens = len(word_tokenize(self.output["choices"][0]["text"]))
 
         report = {
             'u_id': self.u_id,
             'prompt_id': self.prompt_id,
             'time': datetime.datetime.now(),
             'completion_type': self.completion_type,
-            'prompt': self.prompt,
+            'prompt': self.starting_prompt,
             'risk_score': sum([1 for stage in self.stages.values() if not stage]) + int(overhead > 75) + random.randint(1, 10),
             'prompt_tokens': prompt_tokens,
             'vaccinated_prompt_tokens': vaccinated_prompt_tokens,

@@ -196,5 +196,5 @@ class Pulse(tk.Tk):
 
         self.prompt_listbox.delete(0, tk.END)
         for i, prompt in enumerate(self.prompts):
-            self.prompt_listbox.insert(tk.END, prompt)
+            self.prompt_listbox.insert(tk.END, prompt["prompt"])
             self.prompt_listbox.itemconfig(i, select_bg_and_fg(self.prompts[i]["risk_score"]))
