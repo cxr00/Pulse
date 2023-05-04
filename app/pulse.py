@@ -84,7 +84,7 @@ class Pulse(tk.Tk):
             new_prompt = Prompt(**new_prompt_data.json())
             self.update_components()
             self.prompt_listbox.selection_set(len(self.prompts) - 1)
-            self.set_triage_panel(new_prompt)
+            self.triage_panel.set_prompt_info(new_prompt)
 
         def create_completion_prompt_dialogue():
             self.completion_type_selection_dialogue and self.completion_type_selection_dialogue.destroy()
@@ -129,9 +129,9 @@ class Pulse(tk.Tk):
         selection = self.prompt_listbox.curselection()
         if selection:
             index = selection[0]
-            self.set_triage_panel(self.prompts[index])
+            self.triage_panel.set_prompt_info(self.prompts[index])
         else:
-            self.clear_triage_panel()
+            self.triage_panel.clear_prompt_info()
 
         self.prompt_listbox.update_prompts(self.prompts)
 
@@ -143,7 +143,7 @@ class Pulse(tk.Tk):
         if selection:
             index = selection[0]
             prompt = self.prompts[index]
-            self.set_triage_panel(prompt)
+            self.triage_panel.set_prompt_info(prompt)
 
     def show_prompt_viewer(self, event):
         """
@@ -170,12 +170,3 @@ class Pulse(tk.Tk):
         else:
             selection = 0
         self.analytics_tab = AnalyticsTab(self, option_var, selection, self.prompts)
-
-    def clear_triage_panel(self):
-        self.triage_panel.clear_prompt_info()
-
-    def set_triage_panel(self, prompt):
-        """
-        Update the TriagePanel's information
-        """
-        self.triage_panel.set_prompt_info(prompt)
