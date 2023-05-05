@@ -1,4 +1,4 @@
-from app import Pulse
+from app.pulse import Pulse
 
 
 def main():

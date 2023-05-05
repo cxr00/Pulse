@@ -2,8 +2,7 @@ import requests
 import tkinter as tk
 from tkinter import messagebox
 
-from app import PromptViewer, AnalyticsTab, CompletionTypeSelectionDialogue, AddChatCompletionPromptDialogue, \
-    AddCompletionPromptDialogue, TriagePanel, PromptListbox
+from app import *
 from prompt import Prompt
 from web import pulse_api_url, pulse_user_api_url
 
