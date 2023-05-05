@@ -12,6 +12,7 @@ class AddCompletionPromptDialogue(tk.Toplevel):
     """
     def __init__(self, master, action, prompt):
         tk.Toplevel.__init__(self, master=master)
+
         self.new_prompt = None
         self.action = action
         self.logit_bias_dialogue = None
@@ -116,6 +117,7 @@ class AddCompletionPromptDialogue(tk.Toplevel):
 
         self.iconbitmap("icon.ico")
         self.title("Add prompt")
+        self.geometry("+100+100")
         self.config(padx=10, pady=10)
         self.focus_set()
 

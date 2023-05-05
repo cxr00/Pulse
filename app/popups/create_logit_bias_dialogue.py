@@ -24,9 +24,6 @@ class CreateLogitBiasDialogue(tk.Toplevel):
         tk.Toplevel.__init__(self, master)
         self.action = action
         self.logit_bias = previous_logit_bias
-        self.iconbitmap("icon.ico")
-        self.title("Create logit bias")
-        self.config(padx=10, pady=10)
 
         self.size = 0
 
@@ -70,6 +67,11 @@ class CreateLogitBiasDialogue(tk.Toplevel):
         self.token_number_labels.append(new_token_number_label)
         self.token_entries.append(new_token_entry)
         self.token_bias_entries.append(new_token_bias_entry)
+
+        self.iconbitmap("icon.ico")
+        self.geometry("+100+100")
+        self.title("Create logit bias")
+        self.config(padx=10, pady=10)
 
     def remove_entry(self):
         """
