@@ -1,4 +1,5 @@
-from web.flask_api import app
+from .pulse_fastapi import app
+from .prompt import Prompt
 
 host = "127.0.0.1"
 port = 3553

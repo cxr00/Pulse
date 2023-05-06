@@ -2,7 +2,7 @@ import ast
 from app.popups import CreateLogitBiasDialogue
 import tkinter as tk
 from tkinter import messagebox
-from prompt import completion_models
+from api.prompt import completion_models
 
 
 class AddCompletionPromptDialogue(tk.Toplevel):

@@ -4,8 +4,8 @@ import json
 import nltk
 from nltk.tokenize import word_tokenize
 import random
-from prompt import gpt_35_turbo, completion_default_params, per
-from prompt.staging import BasicStaging
+from . import gpt_35_turbo, completion_default_params, per
+from .staging import BasicStaging
 # nltk.download("punkt")  # It's already downloaded rn
 
 

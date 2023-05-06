@@ -1,7 +1,7 @@
 import openai
 
-from prompt import blocklist
-from prompt.staging import Staging
+from .._data import blocklist
+from .staging import Staging
 import re
 
 

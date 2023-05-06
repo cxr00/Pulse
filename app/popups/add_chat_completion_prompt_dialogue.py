@@ -2,7 +2,7 @@ import ast
 import tkinter as tk
 from tkinter import messagebox
 
-from prompt import chat_completion_models, chat_completion_default_params
+from api.prompt import chat_completion_models, chat_completion_default_params
 from app.popups import CreateLogitBiasDialogue
 
 

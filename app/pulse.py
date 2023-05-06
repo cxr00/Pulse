@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter import messagebox
 
 from app import *
-from prompt import Prompt
-from web import pulse_api_url, pulse_user_api_url
+from api.prompt import Prompt
+from api import pulse_api_url, pulse_user_api_url
 
 
 class Pulse(tk.Tk):
@@ -166,7 +166,7 @@ class Pulse(tk.Tk):
         Updates the analytics tab
         """
         option_var = self.dropdown_var.get()
-        self.prompts = [Prompt(**data) for data in requests.get(pulse_user_api_url + option_var).json()]
+        self.prompts = [Prompt(**data) for data in requests.get(pulse_user_api_url + option_var).json()["prompts"]]
 
         if self.analytics_tab:
             selection = int(self.analytics_tab.index("current"))
