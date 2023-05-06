@@ -14,35 +14,6 @@ engine = create_engine(db_url)
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# class CreatePromptModel(BaseModel):
-#     __tablename__ = 'prompts'
-#     prompt_id = Column(Integer, primary_key=True)
-#     u_id = Column(String(50), nullable=False)
-#     completion_type = Column(String(32), nullable=False)
-#     time = Column(DateTime, nullable=False)
-#     prompt = Column(String(8192), nullable=False)
-#     risk_score = Column(Integer, nullable=False)
-#     prompt_tokens = Column(Integer, nullable=False)
-#     vaccinated_prompt_tokens = Column(Integer, nullable=False)
-#     overhead = Column(Integer, nullable=False)
-#     layering_input_tokens = Column(Integer, nullable=False)
-#     layering_overhead = Column(Integer, nullable=False)
-#     layering_to_vaccinated_overhead = Column(Integer, nullable=False)
-#     gating = Column(String(255), nullable=False)
-#     annotation_verification = Column(String(255), nullable=False)
-#     layering = Column(String(255), nullable=False)
-#     layering_output = Column(String(8192), nullable=False)
-#     layering_output_tokens = Column(Integer, nullable=False)
-#     vaccination = Column(String(255), nullable=False)
-#     vaccinated_prompt = Column(String(8192), nullable=False)
-#     output = Column(JSON, nullable=False)
-#     output_tokens = Column(Integer, nullable=False)
-#     cost = Column(Float, nullable=False)
-#     model_parameters = Column(JSON, nullable=False)
-#
-#     def __bool__(self):
-#         return True
-
 
 class PromptModel(Base):
     __tablename__ = 'prompts'
@@ -97,6 +68,7 @@ class PromptModel(Base):
             'model_parameters': self.model_parameters
         }
 
+
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
@@ -108,26 +80,10 @@ CURRENT_PROMPT_ID = max([-1] + [prompt.prompt_id for prompt in prompts]) + 1
 users = list(set([prompt.u_id for prompt in prompts]))
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    print(await request.json())
-
-    error_messages = []
-    for error in exc.errors():
-        # Extract the field name from the error
-        field = list(error["loc"])[0]
-        error_messages.append(f"Missing field: {field}")
-    print(error_messages)
-
-    print(exc)
-    return JSONResponse(
-        status_code=422,
-        content={"message": "Validation Error", "errors": exc.errors()},
-    )
-
 @app.get("/prompts")
 def get_prompts():
     return {"prompts": [prompt.as_dict() for prompt in prompts]}
+
 
 @app.get("/prompts/{prompt_id}")
 def get_prompt(prompt_id):
@@ -135,6 +91,7 @@ def get_prompt(prompt_id):
     prompt = db.query(PromptModel).filter(PromptModel.prompt_id == prompt_id)
     db.close()
     return {"prompt": prompt.as_dict()}
+
 
 @app.get("/prompts/users/{user_id}")
 def get_users_prompts(user_id):
@@ -146,9 +103,9 @@ def get_users_prompts(user_id):
     else:
         return {"error": "User id not found"}, 404
 
+
 @app.post("/prompts")
 def stage_prompt(prompt: dict):
-    print(prompt)
     global CURRENT_PROMPT_ID, prompts
     new_prompt = Prompt(prompt_id=CURRENT_PROMPT_ID, **prompt)
     CURRENT_PROMPT_ID += 1
@@ -161,6 +118,7 @@ def stage_prompt(prompt: dict):
     prompts = sess.query(PromptModel).all()
     sess.close()
     return new_prompt.dict()
+
 
 @app.delete('/prompts/{prompt_id}')
 def delete_prompt(prompt_id):
