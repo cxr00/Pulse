@@ -1,0 +1,8 @@
+openai~=0.27.6
+nltk~=3.8.1
+fastapi~=0.95.1
+pydantic~=1.10.7
+SQLAlchemy~=2.0.12
+starlette~=0.26.1
+requests~=2.30.0
+matplotlib~=3.7.1
