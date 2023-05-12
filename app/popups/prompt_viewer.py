@@ -12,7 +12,7 @@ class PromptViewer(tk.Toplevel):
     def __init__(self, master, prompt, clone_action):
         tk.Toplevel.__init__(self, master=master)
         width = 50
-        self.iconbitmap("icon.ico")
+        self.iconbitmap("img/icon.ico")
         self.title(str(prompt))
         self.config(padx=10, pady=10)
         self.clone_action = clone_action

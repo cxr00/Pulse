@@ -13,3 +13,4 @@ class CompletionTypeSelectionDialogue(tk.Toplevel):
 
         self.title("Select completion type")
         self.geometry("+100+100")
+        self.iconbitmap("img/icon.ico")

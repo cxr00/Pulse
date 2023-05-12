@@ -68,7 +68,7 @@ class CreateLogitBiasDialogue(tk.Toplevel):
         self.token_entries.append(new_token_entry)
         self.token_bias_entries.append(new_token_bias_entry)
 
-        self.iconbitmap("icon.ico")
+        self.iconbitmap("img/icon.ico")
         self.geometry("+100+100")
         self.title("Create logit bias")
         self.config(padx=10, pady=10)

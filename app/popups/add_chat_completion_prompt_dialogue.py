@@ -118,7 +118,7 @@ class AddChatCompletionPromptDialogue(tk.Toplevel):
         self.cancel_add_prompt_button = tk.Button(self, text="Cancel", command=self.destroy)
         self.cancel_add_prompt_button.grid(row=11, column=4)
 
-        self.iconbitmap("icon.ico")
+        self.iconbitmap("img/icon.ico")
         self.title("Add prompt")
         self.geometry("+100+100")
         self.config(padx=10, pady=10)

@@ -19,7 +19,7 @@ class Pulse(tk.Tk):
 
         self.config(padx=5, pady=5)
         self.title("Pulse - PromptOps by Complexor")
-        self.iconbitmap("icon.ico")
+        self.iconbitmap("img/icon.ico")
 
         # PromptViewer for individual prompts
         self.prompt_viewer_popup = None
